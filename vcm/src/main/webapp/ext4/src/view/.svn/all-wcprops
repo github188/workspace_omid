@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view
+END
+AbstractView.js
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/AbstractView.js
+END
+View.js
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/View.js
+END
+DragZone.js
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/DragZone.js
+END
+BoundListKeyNav.js
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/BoundListKeyNav.js
+END
+Table.js
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/Table.js
+END
+TableChunker.js
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/TableChunker.js
+END
+BoundList.js
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/BoundList.js
+END
+DropZone.js
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/view/DropZone.js
+END

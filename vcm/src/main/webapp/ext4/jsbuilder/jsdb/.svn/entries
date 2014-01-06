@@ -1,0 +1,71 @@
+9
+
+dir
+218
+https://192.168.176.95/svn/vcm/src/main/webapp/ext4/jsbuilder/jsdb
+https://192.168.176.95/svn/vcm
+
+
+
+2012-12-20T06:35:13.203125Z
+79
+wushaoxiong
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fd1ed11a-c3f3-4f41-b40f-00f8df51a901
+
+license.txt
+file
+
+
+
+
+2013-01-05T01:11:49.284000Z
+f656e315d64104552b1a25770aa9fead
+2012-12-20T06:35:13.203125Z
+79
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+30228
+
+linux
+dir
+
+mac
+dir
+
+win
+dir
+

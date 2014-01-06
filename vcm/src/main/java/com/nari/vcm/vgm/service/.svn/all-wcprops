@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/vcm/!svn/ver/208/src/main/java/com/nari/vcm/vgm/service
+END
+CustomerGroupManaService.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/vcm/!svn/ver/199/src/main/java/com/nari/vcm/vgm/service/CustomerGroupManaService.java
+END
+AssessmentObjPropertyService.java
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/vcm/!svn/ver/199/src/main/java/com/nari/vcm/vgm/service/AssessmentObjPropertyService.java
+END
+HomePageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/vcm/!svn/ver/165/src/main/java/com/nari/vcm/vgm/service/HomePageService.java
+END
+GroupModelManageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/vcm/!svn/ver/199/src/main/java/com/nari/vcm/vgm/service/GroupModelManageService.java
+END
+ImpCustomerManaService.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/vcm/!svn/ver/203/src/main/java/com/nari/vcm/vgm/service/ImpCustomerManaService.java
+END

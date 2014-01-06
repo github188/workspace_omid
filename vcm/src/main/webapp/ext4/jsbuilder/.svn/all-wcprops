@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/vcm/!svn/ver/90/src/main/webapp/ext4/jsbuilder
+END
+JSBuilder.sh
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/vcm/!svn/ver/78/src/main/webapp/ext4/jsbuilder/JSBuilder.sh
+END
+.commit-template
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/vcm/!svn/ver/78/src/main/webapp/ext4/jsbuilder/.commit-template
+END
+sencha.sh
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/vcm/!svn/ver/78/src/main/webapp/ext4/jsbuilder/sencha.sh
+END
+README.md
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/vcm/!svn/ver/78/src/main/webapp/ext4/jsbuilder/README.md
+END
+JSBuilder.bat
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/vcm/!svn/ver/78/src/main/webapp/ext4/jsbuilder/JSBuilder.bat
+END

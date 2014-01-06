@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias alias="Account" type="com.nari.omid.domain.Account" />
+	</typeAliases>
+	
+	<plugins>
+		<plugin interceptor="com.nari.common.mybatis.pagination.ResultSetInterceptor" />
+		<plugin interceptor="com.nari.common.mybatis.pagination.PageInterceptor">
+			<property name="dialect" value="oracle" />
+		</plugin>
+	</plugins>
+	
+	<mappers>
+		<mapper resource="mybatis/AccountMapper.xml"/>
+<<<<<<< .mine
+		<mapper resource="mybatis/gis/gis_cp.xml"/>
+		<mapper resource="mybatis/omidstatistics/MeasureExcMapper.xml"/>
+=======
+>>>>>>> .r41
+	</mappers>
+</configuration>

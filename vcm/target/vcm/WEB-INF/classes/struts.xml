@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	
+	<constant name="struts.objectFactory" value="spring" />
+	<constant name="struts.convention.default.parent.package" value="default-package" />    
+    <package name="default-package" extends="convention-default"></package> 
+    <!--
+    <package name="test" extends="strust-default,json-default" namespace="/test" />  
+    -->
+	<!--
+	<constant name="struts.convention.default.parent.package" value="default-package" />  
+	<package name="default-package" extends="convention-default"></package>
+	<constant name="struts.convention.package.locators" value="action"/>
+	<constant name="struts.convention.result.path" value="/"/> 
+	-->
+	
+	<package name="baseJson"  extends="json-default">
+		
+	</package>
+	
+</struts>

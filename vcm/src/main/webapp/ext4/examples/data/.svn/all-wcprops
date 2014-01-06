@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data
+END
+associations.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data/associations.js
+END
+associations.html
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data/associations.html
+END
+order.php
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data/order.php
+END
+customer.php
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data/customer.php
+END
+orderitem.php
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/vcm/!svn/ver/89/src/main/webapp/ext4/examples/data/orderitem.php
+END

@@ -1,0 +1,79 @@
+/* reset all browser whitespace and fonts styles
+ * @path STATIC/img/images/web.css
+ * Created:admin
+ */
+html{height:100%;margin-bottom:1px;color:#3D3F3C;}
+body{height:100%;margin:0;padding:0;font:14px/1.4 "Tahoma";}
+/**/
+form,select,option,input,textarea{font-size:14px;font-family:"Tahoma";}
+textarea{overflow:scroll;overflow-x:hidden;}
+label{display:inline-block;*display:inline;*zoom:1}
+input,textarea{padding:2px;}
+caption,cite,code,dfn,th,var{text-align:left;font-weight:normal;font-style:inherit;}
+/*font*/
+h1{font-size:24px;font-weight:bold;font-family:"Tahoma";margin-bottom:12px}
+h2{font-size:24px;font-weight:bold;font-family:"Tahoma";margin-bottom:10px}
+h3{font-size:18px;font-weight:bold;font-family:"Tahoma";margin-bottom:8px}
+h4{font-size:16px;font-weight:bold;font-family:"Tahoma";margin-bottom:5px}
+h5{font-size:14px;font-weight:bold;font-family:"Tahoma";margin-bottom:5px}
+h6{font-size:14px;font-weight:normal;font-family:"Tahoma";margin-bottom:5px;}
+/**/
+table{border-collapse:collapse;border-spacing:0;width:100%;}
+form{margin:0;padding:0}
+ul{margin:0;padding:0;list-style:none}
+p{margin:0 0 1em 0}
+blockquote{margin:0 0 1em 0}
+input.text{color:#444;border-color:#9f9f9f #dcdcdc #dcdcdc #9f9f9f;border-style:solid;border-width:1px;padding:3px 2px;height:14px}
+input.radio,input.checkbox{margin-right:2px;vertical-align:-1px;}
+input.radio,input.checkbox{margin-left:-2px}
+label.radio,label.checkbox{margin-right:5px}
+textarea.t_Areas{border-color:#9f9f9f #dcdcdc #dcdcdc #9f9f9f;border-style:solid;border-width:1px;padding:1px;resize:none}
+
+a{color:#06f;text-decoration:none}
+a:hover{color:#BD5D00;text-decoration:underline}
+
+img{border:0}
+.gray{color:#9B9FA2;}
+.orange{color:#f60}
+.red{color:#f00}
+.blue{color:blue}
+.yellow{color:yellow}
+.orange{color:#f60}
+.green{color:green}
+.min{font-size:11px}
+.center{text-align:center}
+.right{text-align:right}
+.left{text-align:left}
+.top{vertical-align:top}
+.middle{vertical-align:middle}
+.bottom{vertical-align:bottom}
+.hidden{display:none}
+.show{display:block}
+
+.even{background:#F6FFF1}
+.evenOver{background:#E0F2FF}
+
+.hideText{text-indent:-9999px;white-space:nowrap;}
+.fix:after{content:".";height:0;visibility:hidden;display:block;clear:both;}
+.fix{/height:1%;}
+.y_fix{overflow:hidden;zoom:1}
+
+.monitor{background:#CEF0FF}
+.map-place{padding:20px;background:#E8F8FF}
+
+.box{width:350px;border:1px solid #8dc48c;opacity:0.8;filter:Alpha(opacity=80);zoom:1;}
+.box .theme{padding:0 10px;line-height:30px;border-bottom:1px solid #8dc48c;color:#3d8136;background:url(box_theme.gif) repeat-x;font-weight:bold}
+.box .theme2{background-image:url(box_theme2.gif) repeat-x}
+.box dd{margin:0;padding:0;background:#fff;}
+
+.statistics-msg{position:absolute;right:20px;top:20px;}
+.statistics-msg th{text-align:right;}
+.statistics-msg th,.statistics-msg td{padding:4px 0;}
+.statistics-msg .hd{font-size:130%}
+.statistics-msg dd{padding:8px}
+.color_value{background:url(color_value.png) no-repeat;padding-left:15px}
+.cv_02{background-position:0 -20px;}
+.cv_03{background-position:0 -40px;}
+.cv_04{background-position:0 -60px;}
+
+.online-monitor{top:186px;right:20px;position:absolute;}

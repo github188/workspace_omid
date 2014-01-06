@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.intelDiag.mapper.ElecAbnormalMapper">
+
+  <cache />
+
+  <select id="getOrgNo" parameterType="string" resultType="hashmap">
+  	  select org_no,org_name,org_type
+  from (
+  	select s.org_name, s.org_no,s.org_type 
+		  from sea_o_org s
+		  where org_no = #{orgNo}
+       union 
+     select s.org_name, s.org_no,s.org_type 
+      from sea_o_org s   
+      where p_org_no =#{orgNo}	
+       ) order by org_no	  
+  	<!--
+  	<if test="org_no!=null and org_no!=''">
+  		select s.org_name, s.org_no,s.org_type
+		  from sea_o_org s
+		 where   ORG_NO = #{org_no}
+  	</if>
+  <if test="org_no==null or org_no==''">
+  		select s.org_name, s.org_no,s.org_type
+		  from sea_o_org s
+		 where 7>=length(org_no)
+		 connect by prior org_no = p_org_no
+		 start with org_no =(select org_no from sea_o_org where p_org_no='0')
+		 order by s.org_no
+  </if>
+  -->
+  	<!--异常数-->
+  </select>
+  <select id="getEventLevelList" parameterType="string" resultType="hashmap">
+  	     SELECT v.event_level, v.event_level_name FROM vw_event_level v
+  </select >
+   <select id="getconstypeList" parameterType="string" resultType="hashmap">
+  	     SELECT SEA.cons_type,SEA.cons_type_name FROM SEA.VW_CONS_TYPE SEA
+  </select >
+  <select id="queryEleAbnormalTotalList" parameterType="string"  resultType="hashmap">
+  select aa.alarm_code, decode(aa.alarm_code,'','合计',b.event_name) event_name, aa.cnt
+    from (SELECT a.alarm_code, count(*) cnt
+          FROM a_alarm_analyse a,SEA_C_CONS CC,SEA.VW_CONS_TYPE SEA
+          <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+              ,SEA.R_TMNL_RUN    R
+          </if>
+          where a.org_no IN
+  	        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+           AND a.cons_no=cc.cons_no
+           AND cc.cons_type=sea.cons_type
+           and a.alarm_type = #{map.alarmType}
+           AND A.EVENT_LEVEL = #{map.eventLevel}
+           AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+           AND sea.cons_type=#{map.consType}
+           <!--
+        <if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+        <if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+         group by cube(a.alarm_code)) aa , vw_sea_alarm_code b
+	 where aa.alarm_code = b.event_no(+)
+	 ORDER BY aa.alarm_code    
+  </select>
+  <select id="queryFileTotalList" resultType="hashmap">
+SELECT A.CONS_NO,
+       A.CONS_NAME,
+       A.VOLT_CODE VOLT,
+       A.ELEC_ADDR,
+       A.RUN_CAP,
+       A.TRADE_NAME,
+       A.ELEC_TYPE,
+       A1.TMNL_ASSET_NO,
+       A1.TERMINAL_ADDR,
+       A1.STATUS_NAME,
+       A1.PROTOCOL_NAME,
+       A1.TMNL_TYPE,
+       A1.COLL_MODE_NAME,
+       A1.FACTORY_NAME,
+       A2.ASSET_NO,
+       A2.T_FACTOR,
+       A2.COMM_MODE,
+       A2.MP_ID,
+       A2.MP_ATTR_NAME,
+       A2.USAGE_TYPE_NAME,
+       A2.VOLT_CODE,
+       A2.MEAS_MODE,
+       A2.WIRING_MODE_NAME
+  FROM (SELECT C.CONS_NO,
+               C.CONS_NAME,
+               C.VOLT_CODE,
+               VVC.VOLT,
+               C.ELEC_ADDR,
+               C.RUN_CAP,
+               C.TRADE_CODE,
+               T.TRADE_NAME,
+               C.ELEC_TYPE_CODE,
+               ET.ELEC_TYPE
+          FROM SEA_C_CONS            C,
+               SEA.VW_TRADE          T,
+               SEA.VW_ELEC_TYPE_CODE ET,
+               SEA.VW_VOLT_CODE      VVC
+         WHERE C.TRADE_CODE = T.TRADE_NO(+)
+           AND VVC.VOLT_CODE (+)= C.VOLT_CODE
+           AND C.ELEC_TYPE_CODE = ET.ELEC_TYPE_CODE(+)
+           AND C.CONS_NO = #{map.consNo}) A,
+       (SELECT R.TMNL_ASSET_NO,
+               R.TERMINAL_ADDR,
+               R.STATUS_CODE,
+               S.STATUS_NAME,
+               R.PROTOCOL_CODE,
+               P.PROTOCOL_NAME,
+               R.TERMINAL_TYPE_CODE,
+               T.TMNL_TYPE,
+               R.COLL_MODE,
+               C.COLL_MODE COLL_MODE_NAME,
+               R.FACTORY_CODE,
+               F.FACTORY_NAME
+          FROM SEA_R_TMNL_RUN         R,
+               SEA.VW_TMNL_STATUS_RUN S,
+               VW_PROTOCOL_CODE       P,
+               SEA.VW_TMNL_TYPE_CODE  T,
+               VW_COLL_MODE           C,
+               SEA.VW_TMNL_FACTORY    F
+         WHERE R.STATUS_CODE = S.STATUS_CODE(+)
+           AND R.PROTOCOL_CODE = P.PROTOCOL_CODE(+)
+           AND R.TERMINAL_TYPE_CODE = T.TMNL_TYPE_CODE(+)
+           AND R.COLL_MODE = C.COLL_MODE_CODE(+)
+           AND R.FACTORY_CODE = F.FACTORY_CODE(+)
+           AND R.TERMINAL_ADDR = #{map.termimalAddr}) A1,
+       (SELECT C.ASSET_NO,
+               C.T_FACTOR,
+               V.PROTOCOL_NAME COMM_MODE,
+               D.MP_ID,
+               D.MP_ATTR_NAME,
+               D.USAGE_TYPE_NAME,
+               D.VOLT_CODE,
+               D.MEAS_MODE,
+               D.WIRING_MODE_NAME
+          FROM SEA_C_METER C,SEA.VW_MET_COMM_PROTOCOL V,
+               (SELECT CM.MP_ID,
+                       MA.MP_ATTR_NAME,
+                       UT.USAGE_TYPE_NAME,
+                       CM.VOLT_CODE,
+                       MM.MEAS_MODE,
+                       WM.WIRING_MODE_NAME
+                  FROM SEA_C_MP             CM,
+                       SEA.VW_MP_ATTR       MA,
+                       SEA.VW_MP_USAGE_TYPE UT,
+                       SEA.VW_MEAS_MODE     MM,
+                       SEA.VW_WIRING_MODE WM
+                 WHERE CM.MP_ATTR_CODE = MA.MP_ATTR_CODE(+)
+                   AND CM.USAGE_TYPE_CODE = UT.USAGE_TYPE_CODE(+)
+                   AND CM.WIRING_MODE=WM.WIRING_MODE(+)
+                   AND CM.MEAS_MODE = MM.MEAS_NO(+)) D
+         WHERE C.MP_ID = D.MP_ID(+)
+           AND C.COMM_NO=V.PROTOCOL_CODE(+)
+           AND C.METER_ID = #{map.meterId}) A2
+  </select>
+  <select id="queryAlarmAnalyseHisInfo" useCache="false" parameterType="string" resultType="hashmap">
+  			SELECT 
+  			A.ALARM_ID,
+  			A.ALARM_CODE,
+		    A.EVENT_LEVEL,	
+		    VW.EVENT_NAME,
+		    A.CONS_NO,	
+		    A.ALARM_SRC,
+		    TO_CHAR(A.FIRST_ALARM_DATE,'yyyy-mm-dd') FIRST_ALARM_DATE,
+		    TO_CHAR(A.ALARM_DATE,'yyyy-mm-dd') ALARM_DATE,
+		    A.ALARM_CNT,
+		    TO_CHAR(A.FIRST_RESUME_DATE,'yyyy-mm-dd') FIRST_RESUME_DATE,
+		    TO_CHAR(A.RESUME_DATE,'yyyy-mm-dd') RESUME_DATE,
+		    A.RESUME_DAY_CNT,
+		    A.METER_ASSET_NO
+		  FROM A_ALARM_ANALYSE_HIS   A, VW_SEA_ALARM_CODE VW
+		 WHERE A.ALARM_CODE = VW.EVENT_NO(+)
+		    AND A.ALARM_CODE= #{map.alarmCode}
+   			AND A.CONS_NO LIKE '%${ map.consNo}%' 
+   			AND A.ALARM_TYPE =#{map.alarmType}
+   		 <![CDATA[ AND A.ALARM_DATE >=to_date(#{map.querySdate},'yyyy-mm-dd')
+ 		  	AND A.ALARM_DATE <= to_date(#{map.queryEdate},'yyyy-mm-dd')]]>
+  
+   </select >
+</mapper>

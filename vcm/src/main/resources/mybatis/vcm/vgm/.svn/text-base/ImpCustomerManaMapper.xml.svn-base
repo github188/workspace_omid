@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.vcm.vgm.mapper.ImpCustomerManaMapper">
+
+  <cache />
+    
+  <delete id="deleteCConsVcm" parameterType="hashmap">
+    DELETE FROM C_CONS_VCM WHERE CONS_ID IN
+    <foreach collection="CONS_ID" item="item" index="index" open="(" separator="," close=")">  
+    '${item}'
+    </foreach>
+  </delete>
+ 
+  
+  <select id = "queryCCons" parameterType="hashmap" useCache="false" resultType="hashmap">
+  	SELECT C.CONS_ID,C.CONS_NO,C.CONS_NAME,C.ORG_NO,C.SUBS_ID,C.TG_ID FROM SEA.C_CONS C WHERE
+  	1=1
+  	<if test = "map.ORG_NO!=''">
+  	AND C.ORG_NO IN (SELECT OC.CHILD_ORG_NO FROM SEA.O_ORG_CHILDS OC WHERE OC.ORG_NO=#{map.ORG_NO})
+  	</if>
+  	<if test = "map.CONS_NO!=''">
+  	AND C.CONS_NO LIKE '%${map.CONS_NO}%'
+  	</if>
+  	<if test = "map.CONS_NAME!=''">
+  	AND C.CONS_NAME LIKE '%${map.CONS_NAME}%'
+  	</if>
+  </select>
+  
+  <select id="queryOOrg03" resultType="java.util.HashMap">
+  	SELECT ORG_NO,ORG_NAME FROM SEA.O_ORG WHERE ORG_TYPE IN('02','03')
+  </select>
+  
+  <select id="queryPbsArea" resultType="hashmap">
+  	  SELECT A.AREA_ID AS AREA_CODE,A.AREA_NAME FROM PBS.AREA A
+  </select>
+  
+  <select id="queryPbsFactory" resultType="hashmap" useCache="false" parameterType="hashmap">
+  	  SELECT FAC_ID AS FACTORY_CODE,FAC_NAME AS FACTORY_NAME FROM PBS.FACTORY 
+  	  <if test = "AREA_ID!=''">
+  	  	WHERE AREA_ID=#{AREA_ID}
+  	  </if>
+  </select>
+  
+  <select id="queryPbsMeter" resultType="hashmap" useCache="false" parameterType="hashmap">
+  	  SELECT M.METER_ID,M.METER_NAME,M.DEV_ID,M.FAC_ID,F.FAC_NAME FROM PBS.METER M,PBS.FACTORY F WHERE F.FAC_ID=M.FAC_ID
+  	  <if test = "map.FAC_ID!=''"> 
+  	  AND M.FAC_ID=#{map.FAC_ID}
+  	  </if>
+  	  <if test = "map.METER_TYPE!='' and map.METER_TYPE!=1 and map.METER_TYPE!=0">
+  	  AND M.DEV_ID LIKE '${map.METER_TYPE}%'
+  	  </if>
+  	  <if test = "map.METER_TYPE==0">
+  	  AND M.DEV_ID NOT LIKE '122%' AND M.DEV_ID NOT LIKE '123%' AND M.DEV_ID NOT LIKE '124%' AND M.DEV_ID NOT LIKE '125%' AND M.DEV_ID NOT LIKE '126%' AND M.DEV_ID NOT LIKE '127%' 
+  	  </if>
+  </select>
+  
+  <select id = "queryVwCustType" useCache="false" resultType="java.util.HashMap">
+  	  SELECT CUST_TYPE,CUST_TYPE_NAME FROM  VW_CUST_TYPE
+  </select>
+  
+  <select id ="queryVwEconomyType" useCache="false" resultType="java.util.HashMap">
+  	  SELECT ECONOMY_TYPE AS CODE,ECONOMY_TYPE_NAME AS NAME FROM VW_ECONOMY_TYPE
+  </select>
+
+  <select id = "queryVwCreditLevel" useCache="false" resultType="java.util.HashMap">
+  	SELECT CREDIT_LEVEL_CODE,CREDIT_LEVEL_NAME FROM VW_CREDIT_LEVEL
+  </select>
+  
+  <select id = "queryVwValueLevel" useCache="false" resultType="java.util.HashMap">
+  	SELECT VALUE_LEVEL_CODE,VALUE_LEVEL_NAME FROM VW_VALUE_LEVEL
+  </select>
+  
+  <select id = "queryVwRiskLevel" useCache="false" resultType="java.util.HashMap">
+  	SELECT RISK_LEVEL_CODE,RISK_LEVEL_NAME FROM VW_RISK_LEVEL
+  </select>
+  
+  <select id = "queryVwVipFlag" useCache="false" resultType="java.util.HashMap">
+  	SELECT VIP_FLAG,VIP_FLAG_NAME FROM VW_VIP_FLAG
+  </select>
+  
+  <select id = "queryVwIndustryCode" useCache="false" resultType="java.util.HashMap">
+  	SELECT INDUSTRY_CODE,INDUSTRY_NAME FROM VW_INDUSTRY_CODE
+  </select>
+
+  <select id = "querySeaVwConsSortCode" useCache="false" resultType="java.util.HashMap">
+  	SELECT CONS_SORT_CODE,CONS_SORT_NAME FROM SEA_VW_CONS_SORT_CODE
+  </select>
+  
+  <select id = "queryVwHecIndustryCode" useCache="false" resultType="java.util.HashMap">
+  	SELECT HEC_INDUSTRY_CODE,HEC_INDUSTRY_NAME FROM VW_HEC_INDUSTRY_CODE
+  </select>
+  
+  <select id = "queryVwIsVip" useCache="false" resultType="java.util.HashMap">
+  	SELECT IS_VIP_CODE,IS_VIP_NAME FROM VW_IS_VIP
+  </select>
+  
+  <select id="queryCCustVcm" useCache="false" resultType="java.util.HashMap">
+  	SELECT CUST_ID,CUST_TYPE,CUST_NO,CUST_NAME,ECONOMY_TYPE_CODE,CREDIT_LEVEL_CODE,VALUE_LEVEL_CODE,RISK_LEVEL_CODE,VIP_FLAG,LEGAL_PERSON,INDUSTRY_CODE,OPER_SCOPE,ENTEPRISE_WEBSITE,BRIEF FROM C_CUST_VCM
+  	WHERE 1=1 
+  	<if test = "CUST_NO!=''">
+  	AND CUST_NO like '%${CUST_NO}%'
+  	</if>
+  	<if test = "CUST_NAME!=''">
+    AND CUST_NAME like '%${CUST_NAME}%'
+  	</if>	 
+  	<if test = "CUST_ID!=''">
+  	AND CUST_ID = #{CUST_ID}
+  	</if>
+  </select>
+  
+  <select id="queryCConsVcm" useCache="false" resultType="java.util.HashMap">
+  	SELECT CONS_ID,CONS_NO,CONS_NAME,ORG_NO,SUBS_ID,TG_ID,CONS_SORT_CODE,ELEC_ADDR,TRADE_CODE,HEC_INDUSTRY_CODE,IS_VIP FROM C_CONS_VCM WHERE 1=1
+  	<if test = "CUST_ID!=''">
+  	AND CUST_ID=#{CUST_ID}
+  	</if>
+  	<if test = "CONS_ID!=''">
+  	AND CONS_ID=#{CONS_ID}
+  	</if>
+  </select>
+  
+  <select id="queryCCust" useCache="false" resultType="java.util.HashMap">
+  	SELECT C.CUST_ID,C.CUST_NO,C.NAME,C.ECONOMY_TYPE_CODE,C.CREDIT_LEVEL_CODE,C.VALUE_LEVEL_CODE,C.RISK_LEVEL_CODE,C.VIP_FLAG FROM SEA.C_CUST C
+    <if test = "map.CUST_NO!='' or map.NAME!=''">
+  	WHERE
+  	</if>
+  	<if test = "map.CUST_NO!='' and map.NAME==''">
+    C.CUST_NO LIKE '%${map.CUST_NO}%'
+  	</if>
+  	<if test = "map.NAME!='' and map.CUST_NO==''">
+  	C.NAME LIKE '%${map.NAME}%'
+  	</if>
+  	<if test ="map.CUST!='' and map.NAME!=''">
+  	C.CUST_NO LIKE '%${map.CUST_NO}%' AND C.NAME LIKE '%${map.NAME}%'
+  	</if>
+  </select>
+  
+  <insert id = "importCCustVcm"  parameterType="hashmap">
+  	MERGE INTO C_CUST_VCM CCV
+    USING(
+    SELECT 'S'||CC.CUST_ID AS CUST_ID,CC.CUST_NO,CC.NAME AS CUST_NAME,CC.ECONOMY_TYPE_CODE,CC.CREDIT_LEVEL_CODE,CC.VALUE_LEVEL_CODE,CC.RISK_LEVEL_CODE,CC.VIP_FLAG FROM SEA.C_CUST CC 
+    WHERE CC.CUST_ID IN
+    <foreach collection="CUST_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+    </foreach>
+    )SRC ON(CCV.CUST_ID=SRC.CUST_ID)
+    WHEN MATCHED THEN
+      UPDATE SET CCV.CUST_NO=SRC.CUST_NO,CCV.CUST_NAME=SRC.CUST_NAME,CCV.ECONOMY_TYPE_CODE=SRC.ECONOMY_TYPE_CODE,CCV.CREDIT_LEVEL_CODE=SRC.CREDIT_LEVEL_CODE,
+      CCV.VALUE_LEVEL_CODE=SRC.VALUE_LEVEL_CODE,CCV.RISK_LEVEL_CODE=SRC.RISK_LEVEL_CODE,CCV.VIP_FLAG=SRC.VIP_FLAG
+    WHEN NOT MATCHED THEN
+      INSERT(CUST_ID,CUST_NO,CUST_NAME,ECONOMY_TYPE_CODE,CREDIT_LEVEL_CODE,VALUE_LEVEL_CODE,RISK_LEVEL_CODE,VIP_FLAG)
+      VALUES(SRC.CUST_ID,SRC.CUST_NO,SRC.CUST_NAME,SRC.ECONOMY_TYPE_CODE,SRC.CREDIT_LEVEL_CODE,SRC.VALUE_LEVEL_CODE,SRC.RISK_LEVEL_CODE,SRC.VIP_FLAG)  
+  </insert>
+  
+  <insert id="importCConsVcm" parameterType="hashmap">
+  	MERGE INTO C_CONS_VCM CCV USING(
+    SELECT #{CUST_ID} AS CUST_ID,'S'||CC.CONS_ID AS CONS_ID,CC.CONS_NO,CC.CONS_NAME,CC.ORG_NO,CC.TG_ID,CC.SUBS_ID FROM SEA.C_CONS CC 
+    WHERE CC.CONS_ID IN
+    <foreach collection="CONS_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+    </foreach>
+    )SRC ON(CCV.CONS_ID=SRC.CONS_ID)
+    WHEN MATCHED THEN
+      UPDATE SET CCV.CUST_ID=SRC.CUST_ID,CCV.CONS_NO=SRC.CONS_NO,CCV.CONS_NAME=SRC.CONS_NAME,CCV.ORG_NO=SRC.ORG_NO,CCV.TG_ID=SRC.TG_ID,CCV.SUBS_ID=SRC.SUBS_ID 
+    WHEN NOT MATCHED THEN
+      INSERT(CONS_ID,CUST_ID,CONS_NO,CONS_NAME,ORG_NO,TG_ID,SUBS_ID)
+      VALUES(SRC.CONS_ID,SRC.CUST_ID,SRC.CONS_NO,SRC.CONS_NAME,SRC.ORG_NO,SRC.TG_ID,SRC.SUBS_ID)
+  </insert>
+  
+  <select id = "queryMeter" parameterType="string" resultType="hashmap">
+  	   SELECT E.ID FROM SEA.C_CONS CC ,SEA.E_DATA_MP E WHERE CC.CONS_NO=E.CONS_NO AND E.IS_VALID='1' AND E.DATA_SRC='1' AND CC.CONS_ID =#{consId}
+  </select>
+  
+  <select id = "queryCCustDef" parameterType="hashmap" resultType="hashmap">
+  	    SELECT OBJ_ID AS ID FROM C_CUST_DEF WHERE CUST_ID = #{CUST_ID} AND CONS_ID = #{CONS_ID}
+  </select>
+  
+  <select id = "queryCCustDefExist" parameterType="hashmap" resultType="hashmap">
+  	    SELECT * FROM C_CUST_DEF WHERE CUST_ID = #{CUST_ID} AND CONS_ID = #{CONS_ID} AND OBJ_ID=#{OBJ_ID}
+  </select>
+  
+  <delete id="deleteCCustDef" parameterType="hashmap">
+    DELETE FROM C_CUST_DEF WHERE CUST_ID=#{CUST_ID} AND CONS_ID=#{CONS_ID} AND OBJ_ID IN
+    <foreach collection="DELETE_ID" item="item" index="index" open="(" separator="," close=")">  
+    '${item}'
+    </foreach>
+  </delete>
+  
+  <insert id = "importCCustDef" parameterType = "hashmap">
+  	MERGE INTO C_CUST_DEF CCF USING(
+    SELECT #{CUST_ID} AS CUST_ID,CC.CONS_ID,E.ID FROM SEA.C_CONS CC,SEA.E_DATA_MP E
+    WHERE CC.CONS_NO=E.CONS_NO(+) AND E.IS_VALID='1' AND E.DATA_SRC='1' AND CC.CONS_ID IN
+    <foreach collection="CONS_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+    </foreach>
+    )SRC ON(CCF.CONS_ID=SRC.CONS_ID)
+    WHEN MATCHED THEN
+      UPDATE SET CCF.CUST_ID=SRC.CUST_ID,CCF.CONS_ID=SRC.CONS_ID,CCF.OBJ_ID=SRC.ID
+    WHEN NOT MATCHED THEN
+      INSERT(C_CUST_DEF_ID,CUST_ID,CONS_ID,OBJ_ID)
+      VALUES(#{C_CUST_DEF_ID},SRC.CUST_ID,SRC.CONS_ID,SRC.ID)
+  </insert>
+  
+  <insert id="insertCCustDef" parameterType = "hashmap">
+  	INSERT INTO C_CUST_DEF(C_CUST_DEF_ID,CUST_ID,CONS_ID,OBJ_ID,OPERA_TYPE) VALUES(#{C_CUST_DEF_ID},#{CUST_ID},#{CONS_ID},#{OBJ_ID},#{OPERA_TYPE})
+  </insert>
+  
+  <select id = "queryCCustDefId" resultType="hashmap">
+  	SELECT S_C_CUST_DEF.NEXTVAL AS C_CUST_DEF_ID FROM DUAL
+  </select>
+  
+  <select id="queryCustId" resultType="hashmap">
+		SELECT S_C_CUST_VCM.NEXTVAL AS CUST_ID FROM DUAL
+  </select>
+  
+    <select id="queryConsId" resultType="hashmap">
+		SELECT S_C_CONS_VCM.NEXTVAL AS CONS_ID FROM DUAL
+  </select>
+  
+  <insert id = "saveCCustVcm" parameterType = "hashmap" >
+  	MERGE INTO C_CUST_VCM CCV
+    USING(
+    SELECT #{CUST_ID} AS CUST_ID,#{CUST_NO} AS CUST_NO,#{CUST_NAME} AS CUST_NAME,#{CUST_TYPE} AS CUST_TYPE,#{ECONOMY_TYPE} AS ECONOMY_TYPE_CODE,
+    #{CREDIT_LEVEL} AS CREDIT_LEVEL_CODE,#{VALUE_LEVEL} AS VALUE_LEVEL_CODE,#{RISK_LEVEL} AS RISK_LEVEL_CODE,#{VIP_FLAG} AS VIP_FLAG,
+    #{LEGAL_PERSON} AS LEGAL_PERSON,#{INDUSTRY} AS INDUSTRY_CODE,#{OPER_SCOPE} AS OPER_SCOPE,#{ENTEPRISE_WEBSITE} AS ENTEPRISE_WEBSITE,#{BRIEF} AS BRIEF FROM DUAL
+    )SRC ON(CCV.CUST_ID=SRC.CUST_ID)
+    WHEN MATCHED THEN
+       UPDATE SET CCV.CUST_NO=SRC.CUST_NO,CCV.CUST_NAME=SRC.CUST_NAME,CCV.ECONOMY_TYPE_CODE=SRC.ECONOMY_TYPE_CODE,CCV.CREDIT_LEVEL_CODE=SRC.CREDIT_LEVEL_CODE,
+       CCV.VALUE_LEVEL_CODE=SRC.VALUE_LEVEL_CODE,CCV.RISK_LEVEL_CODE=SRC.RISK_LEVEL_CODE,CCV.VIP_FLAG=SRC.VIP_FLAG,CCV.LEGAL_PERSON=SRC.LEGAL_PERSON,
+       CCV.INDUSTRY_CODE=SRC.INDUSTRY_CODE,CCV.OPER_SCOPE=SRC.OPER_SCOPE,CCV.ENTEPRISE_WEBSITE=SRC.ENTEPRISE_WEBSITE,CCV.BRIEF=SRC.BRIEF
+    WHEN NOT MATCHED THEN
+       INSERT(CUST_ID,CUST_NO,CUST_NAME,ECONOMY_TYPE_CODE,CREDIT_LEVEL_CODE,VALUE_LEVEL_CODE,RISK_LEVEL_CODE,VIP_FLAG,LEGAL_PERSON,INDUSTRY_CODE,OPER_SCOPE,ENTEPRISE_WEBSITE,BRIEF)
+       VALUES(SRC.CUST_ID,SRC.CUST_NO,SRC.CUST_NAME,SRC.ECONOMY_TYPE_CODE,SRC.CREDIT_LEVEL_CODE,SRC.VALUE_LEVEL_CODE,SRC.RISK_LEVEL_CODE,SRC.VIP_FLAG,SRC.LEGAL_PERSON,
+       SRC.INDUSTRY_CODE,SRC.OPER_SCOPE,SRC.ENTEPRISE_WEBSITE,SRC.BRIEF)
+  </insert>
+  
+  <insert id = "saveCConsVcm" parameterType = "hashmap">
+    MERGE INTO C_CONS_VCM CCV
+    USING(
+    SELECT #{CONS_ID} AS CONS_ID,#{CONS_SRC} AS CONS_SRC,#{CUST_ID} AS CUST_ID,#{ORG_NO} AS ORG_NO,#{CONS_NO} AS CONS_NO,
+    #{CONS_NAME} AS CONS_NAME,#{CONS_SORT_CODE} AS CONS_SORT_CODE,#{ELEC_ADDR} AS ELEC_ADDR,#{TRADE_CODE} AS TRADE_CODE,
+    #{HEC_INDUSTRY_CODE} AS HEC_INDUSTRY_CODE,#{IS_VIP} AS IS_VIP FROM DUAL
+    )SRC ON(CCV.CONS_ID=SRC.CONS_ID)
+    WHEN MATCHED THEN
+       UPDATE SET CCV.ORG_NO=SRC.ORG_NO,CCV.CONS_NO=SRC.CONS_NO,CCV.CONS_NAME=SRC.CONS_NAME,
+       CCV.CONS_SORT_CODE=SRC.CONS_SORT_CODE,CCV.ELEC_ADDR=SRC.ELEC_ADDR,CCV.TRADE_CODE=SRC.TRADE_CODE,
+       CCV.HEC_INDUSTRY_CODE=SRC.HEC_INDUSTRY_CODE,CCV.IS_VIP=SRC.IS_VIP
+    WHEN NOT MATCHED THEN
+       INSERT(CONS_ID,CONS_SRC,CUST_ID,ORG_NO,CONS_NO,CONS_NAME,CONS_SORT_CODE,ELEC_ADDR,TRADE_CODE,HEC_INDUSTRY_CODE,IS_VIP)
+       VALUES(SRC.CONS_ID,SRC.CONS_SRC,SRC.CUST_ID,SRC.ORG_NO,SRC.CONS_NO,SRC.CONS_NAME,SRC.CONS_SORT_CODE,
+       SRC.ELEC_ADDR,SRC.TRADE_CODE,SRC.HEC_INDUSTRY_CODE,SRC.IS_VIP)
+
+  </insert>
+  
+</mapper>

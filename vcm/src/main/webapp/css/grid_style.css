@@ -1,0 +1,16 @@
+/* 严重 */
+.x-grid-record-red .x-grid-cell{  
+    color: #D4101D;  
+}
+/* 重要 */
+.x-grid-record-green .x-grid-cell{  
+    color: #D46B1D;  
+}
+/* 较重要 */
+.x-grid-record-yellow .x-grid-cell{  
+    color: #C7CF18;  
+}
+/* 一般 */
+.x-grid-record-blue .x-grid-cell{  
+    color: #026115;  
+}

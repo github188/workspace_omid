@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/vcm/!svn/ver/216/src/main/resources/mybatis/intelDiag
+END
+MeasureExceptionAnalMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/vcm/!svn/ver/216/src/main/resources/mybatis/intelDiag/MeasureExceptionAnalMapper.xml
+END
+ElecAbnormalMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/vcm/!svn/ver/216/src/main/resources/mybatis/intelDiag/ElecAbnormalMapper.xml
+END
+TaskFlowMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/vcm/!svn/ver/216/src/main/resources/mybatis/intelDiag/TaskFlowMapper.xml
+END

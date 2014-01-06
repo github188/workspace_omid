@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader
+END
+Feature.js
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/Feature.js
+END
+WmsCapabilities.js
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/WmsCapabilities.js
+END
+Wmc.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/Wmc.js
+END
+Attribute.js
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/Attribute.js
+END
+CswRecords.js
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/CswRecords.js
+END
+WfsCapabilities.js
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/WfsCapabilities.js
+END
+WmsDescribeLayer.js
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/reader/WmsDescribeLayer.js
+END

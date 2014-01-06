@@ -1,0 +1,373 @@
+9
+
+dir
+218
+https://192.168.176.95/svn/vcm/src/main/webapp/ext4/examples
+https://192.168.176.95/svn/vcm
+
+
+
+2012-12-20T08:04:34.765625Z
+98
+wushaoxiong
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fd1ed11a-c3f3-4f41-b40f-00f8df51a901
+
+app
+dir
+
+button
+dir
+
+charts
+dir
+
+component-loader
+dir
+
+core
+dir
+
+data
+dir
+
+datasets
+dir
+
+dd
+dir
+
+desktop
+dir
+
+direct
+dir
+
+draw
+dir
+
+example-data.js
+file
+
+
+
+
+2013-01-05T01:20:25.233000Z
+8df07e12457fa2cef93b26de40c42479
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3817
+
+examples.js
+file
+
+
+
+
+2013-01-05T01:20:09.709000Z
+674d452c8a0ca63dbe0a34cde9a98913
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+47045
+
+examples.json
+file
+
+
+
+
+2013-01-05T01:20:09.052000Z
+965d9e47940b5fb5493fd17c153a6a74
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+42352
+
+feed-viewer
+dir
+
+form
+dir
+
+grid
+dir
+
+grid-filtering
+dir
+
+grouptabs
+dir
+
+history
+dir
+
+index.html
+file
+
+
+
+
+2013-01-05T01:20:25.051000Z
+c314529212d3acecf9429a9d9c881318
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5001
+
+init.js
+file
+
+
+
+
+2013-01-05T01:20:25.438000Z
+9702e11932a730e1d17b607bb26c5e27
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+6295
+
+key-feed-viewer
+dir
+
+keynav
+dir
+
+layout
+dir
+
+layout-browser
+dir
+
+locale
+dir
+
+menu
+dir
+
+message-box
+dir
+
+multiselect
+dir
+
+newindex.html
+file
+
+
+
+
+2013-01-05T01:20:07.415000Z
+c314529212d3acecf9429a9d9c881318
+2012-12-20T08:03:20.843750Z
+97
+wushaoxiong
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5001
+
+organizer
+dir
+
+panel
+dir
+
+personel-review
+dir
+
+platform
+dir
+
+portal
+dir
+
+qtips
+dir
+
+resizer
+dir
+
+restful
+dir
+
+sandbox
+dir
+
+shared
+dir
+
+simple-widgets
+dir
+
+slider
+dir
+
+state
+dir
+
+statusbar
+dir
+
+tabs
+dir
+
+themes
+dir
+
+toolbar
+dir
+
+tree
+dir
+
+ux
+dir
+
+view
+dir
+
+window
+dir
+
+writer
+dir
+

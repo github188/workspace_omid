@@ -1,0 +1,1 @@
+表S_CUST_GROUP_MODEL的主键PK_S_CUST_GROUP_MODEL，应该是序列的形式吧；comment字段和oracle关键字冲突了？

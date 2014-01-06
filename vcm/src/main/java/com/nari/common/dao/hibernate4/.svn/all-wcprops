@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/vcm/!svn/ver/142/src/main/java/com/nari/common/dao/hibernate4
+END
+CommonHibernateDao.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/vcm/!svn/ver/3/src/main/java/com/nari/common/dao/hibernate4/CommonHibernateDao.java
+END
+BaseHibernateDao.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/vcm/!svn/ver/142/src/main/java/com/nari/common/dao/hibernate4/BaseHibernateDao.java
+END

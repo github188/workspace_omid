@@ -1,0 +1,137 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data
+END
+ScaleStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/ScaleStore.js
+END
+OwsStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/OwsStore.js
+END
+RasterStyleModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/RasterStyleModel.js
+END
+WfsCapabilitiesLayerModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WfsCapabilitiesLayerModel.js
+END
+LayerStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/LayerStore.js
+END
+StyleStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/StyleStore.js
+END
+CswRecordsModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/CswRecordsModel.js
+END
+AttributeModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/AttributeModel.js
+END
+FeatureStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/FeatureStore.js
+END
+WmsCapabilitiesLayerModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WmsCapabilitiesLayerModel.js
+END
+MapfishPrintProvider.js
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/MapfishPrintProvider.js
+END
+WfsCapabilitiesLayerStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WfsCapabilitiesLayerStore.js
+END
+AttributeStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/AttributeStore.js
+END
+WmcLayerModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WmcLayerModel.js
+END
+WmsCapabilitiesLayerStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WmsCapabilitiesLayerStore.js
+END
+WmsDescribeLayerModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WmsDescribeLayerModel.js
+END
+ScaleModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/ScaleModel.js
+END
+PrintPage.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/PrintPage.js
+END
+VectorStyleModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/VectorStyleModel.js
+END
+LayerTreeModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/LayerTreeModel.js
+END
+LayerModel.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/LayerModel.js
+END
+WmsDescribeLayerStore.js
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/vcm/!svn/ver/156/src/main/webapp/gis/open/geoExt/data/WmsDescribeLayerStore.js
+END

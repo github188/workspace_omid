@@ -1,0 +1,80 @@
+9
+
+dir
+218
+https://192.168.176.95/svn/vcm/src/main/java/com/nari/vcm/dataMining
+https://192.168.176.95/svn/vcm
+
+
+
+2013-01-21T08:15:07.984375Z
+206
+wangkai
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fd1ed11a-c3f3-4f41-b40f-00f8df51a901
+
+action
+dir
+
+dao
+dir
+
+po
+dir
+
+po2
+dir
+
+service
+dir
+
+sql.sql
+file
+
+
+
+
+2013-01-14T06:45:35.909000Z
+16e57ecf19a9c171b0114e2701794a01
+2013-01-07T08:25:54.593750Z
+176
+wangkai
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+183
+
+test
+dir
+

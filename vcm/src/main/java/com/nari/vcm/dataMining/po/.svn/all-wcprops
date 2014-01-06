@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/vcm/!svn/ver/206/src/main/java/com/nari/vcm/dataMining/po
+END
+C_Cust_VCM.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/C_Cust_VCM.java
+END
+C_Cons_VCM.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/vcm/!svn/ver/182/src/main/java/com/nari/vcm/dataMining/po/C_Cons_VCM.java
+END
+F_Analyse_Alarm_VCM.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/F_Analyse_Alarm_VCM.java
+END
+Eval_Obj_Attr.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/Eval_Obj_Attr.java
+END
+F_Cons_Analyse_Rela.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/F_Cons_Analyse_Rela.java
+END
+S_Cust_Group_Model.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/S_Cust_Group_Model.java
+END
+S_Cust_Group_Obj.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/po/S_Cust_Group_Obj.java
+END

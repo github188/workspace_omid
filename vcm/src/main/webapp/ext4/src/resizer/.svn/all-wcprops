@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer
+END
+Splitter.js
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer/Splitter.js
+END
+ResizeTracker.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer/ResizeTracker.js
+END
+SplitterTracker.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer/SplitterTracker.js
+END
+Resizer.js
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer/Resizer.js
+END
+Handle.js
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/resizer/Handle.js
+END

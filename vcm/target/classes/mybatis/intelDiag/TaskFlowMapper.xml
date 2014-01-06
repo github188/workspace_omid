@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.intelDiag.mapper.TaskFlowMapper">
+
+  <cache />
+   <select id="queryTaskFlow" useCache="false"   resultType="hashmap">
+  SELECT A.TMNL_EXCEPTION_ID ALARM_ID,
+       A.EXCEPT_CODE,
+       A.TERMINAL_ID,
+       VW.EVENT_NAME,
+       A.ORG_NO,
+       O.ORG_NAME,
+       A.CONS_NO,
+       C.CONS_NAME,
+       C.CONS_TYPE,
+       TT.CONS_TYPE_NAME,
+       DECODE(A.EVENT_LEVEL,
+              '01',
+              '严重',
+              '02',
+              '重要',
+              '03',
+              '较重要',
+              '04',
+              '一般',
+              '') EVENT_LEVEL,
+       DECODE(A.EXCEPT_SRC,
+              '1',
+              '主站分析',
+              '2',
+              '终端上送事件',
+              '3',
+              '人工录入',
+              '') ALARM_SRC,
+       TO_CHAR(A.FIRST_HAPPEN_DATE, 'yyyy-mm-dd') FIRST_ALARM_DATE,
+       TO_CHAR(A.HAPPEN_DATE, 'yyyy-mm-dd') ALARM_DATE,
+       A.ALARM_CNT,
+       TO_CHAR(A.FIRST_RESUME_DATE, 'yyyy-mm-dd') FIRST_RESUME_DATE,
+       TO_CHAR(A.RESUME_DATE, 'yyyy-mm-dd') RESUME_DATE,
+       A.SAVE_EXCEPT_DATE,
+       A.RESUME_DAY_CNT,
+       R.TERMINAL_ADDR
+
+  FROM A_TMNL_EXCEPTION  A,
+       VW_SEA_ALARM_CODE VW,
+       SEA.C_CONS        C,
+       SEA.VW_CONS_TYPE  TT,
+       SEA.R_TMNL_RUN    R,
+       SEA.O_ORG         O
+ WHERE A.EXCEPT_CODE = VW.EVENT_NO
+   AND A.CONS_NO = C.CONS_NO(+)
+   AND C.CONS_TYPE = TT.CONS_TYPE(+)
+   AND A.TERMINAL_ID = R.TERMINAL_ID(+)
+   AND A.ORG_NO = O.ORG_NO(+) 
+   AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+		<if test="map.exceptCode != null and map.exceptCode !='' ">
+   			AND A.EXCEPT_CODE = #{map.exceptCode}
+   		</if>   
+		<if test="map.alarmCode != null and map.alarmCode !='' ">
+   			AND A.ALARM_CODE= #{map.alarmCode}
+   		</if>   
+        <if test="map.orgNo != null and map.orgNo !='' ">
+   			AND A.ORG_NO IN
+		        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+   		</if>
+   		<if test="map.eventLevel != null and map.eventLevel !='' ">
+   			AND A.EVENT_LEVEL = #{map.eventLevel}
+   		</if>
+   		<!--
+   		<if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+   		<if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+  
+  </select >
+  <select id="queryEleAbnormalTotalList" parameterType="string"  resultType="hashmap">
+  select aa.except_code, decode(aa.except_code,'','合计',b.event_name) event_name, aa.cnt
+ 	 from (SELECT a.except_code, count(*) cnt
+          FROM a_tmnl_exception a
+          <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+          		,SEA.R_TMNL_RUN    R
+          </if>
+          where a.org_no IN
+		        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+           <!--
+           and a.alarm_type = #{map.alarmType}
+           -->
+           AND A.EVENT_LEVEL = #{map.eventLevel}
+           AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+           <!--
+        <if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+        <if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+         group by cube(a.except_code)) aa , vw_sea_alarm_code b
+	 where aa.except_code = b.event_no(+)
+	 ORDER BY aa.except_code    
+  </select>
+	<select id="queryAbnormal" useCache="false" resultType="hashmap">
+		select a.* ,
+       b.tmnl_task_type_name,
+       c.debug_status_name,
+       d.flow_flag_name
+  from SEA_i_tmnl_task a,
+       sea_vw_tmnl_task_type b,
+       sea_vw_debug_status_code c,
+       sea_vw_flow_flag d
+where  a.tmnl_task_type = b.tmnl_task_type
+  and  a.debug_status_code = c.debug_status_code
+  and  a.flow_flag = d.flow_flag
+		and terminal_id = #{map.terminal_id}
+  
+   </select >
+</mapper>

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/vcm/!svn/ver/208/src/main/resources/mybatis/vcm/vgm
+END
+CustomerGroupManaMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/vcm/!svn/ver/196/src/main/resources/mybatis/vcm/vgm/CustomerGroupManaMapper.xml
+END
+AssessmentObjPropertyMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/vcm/!svn/ver/196/src/main/resources/mybatis/vcm/vgm/AssessmentObjPropertyMapper.xml
+END
+HomepageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/vcm/!svn/ver/166/src/main/resources/mybatis/vcm/vgm/HomepageMapper.xml
+END
+GroupModelManageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/vcm/!svn/ver/196/src/main/resources/mybatis/vcm/vgm/GroupModelManageMapper.xml
+END
+ImpCustomerManaMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/vcm/!svn/ver/208/src/main/resources/mybatis/vcm/vgm/ImpCustomerManaMapper.xml
+END

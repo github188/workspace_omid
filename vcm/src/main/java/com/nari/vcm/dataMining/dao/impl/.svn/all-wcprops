@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/vcm/!svn/ver/206/src/main/java/com/nari/vcm/dataMining/dao/impl
+END
+UtilDaoImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/vcm/!svn/ver/206/src/main/java/com/nari/vcm/dataMining/dao/impl/UtilDaoImpl.java
+END
+S_Cust_Group_ModelDaoImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/dao/impl/S_Cust_Group_ModelDaoImpl.java
+END
+F_Cons_Analyse_RelaDaoImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/dao/impl/F_Cons_Analyse_RelaDaoImpl.java
+END
+Cust_VCM_DaoImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/vcm/!svn/ver/182/src/main/java/com/nari/vcm/dataMining/dao/impl/Cust_VCM_DaoImpl.java
+END
+F_Analyse_Alarm_VCMDaoImpl.java
+K 25
+svn:wc:ra_dav:version-url
+V 100
+/svn/vcm/!svn/ver/176/src/main/java/com/nari/vcm/dataMining/dao/impl/F_Analyse_Alarm_VCMDaoImpl.java
+END

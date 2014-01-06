@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/vcm/!svn/ver/203/src/main/java/com/nari/vcm/vgm/mapper
+END
+GroupModelManageMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/vcm/!svn/ver/198/src/main/java/com/nari/vcm/vgm/mapper/GroupModelManageMapper.java
+END
+HomepageMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/vcm/!svn/ver/165/src/main/java/com/nari/vcm/vgm/mapper/HomepageMapper.java
+END
+AssessmentObjPropertyMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/vcm/!svn/ver/198/src/main/java/com/nari/vcm/vgm/mapper/AssessmentObjPropertyMapper.java
+END
+CustomerGroupManaMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/vcm/!svn/ver/198/src/main/java/com/nari/vcm/vgm/mapper/CustomerGroupManaMapper.java
+END
+ImpCustomerManaMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/vcm/!svn/ver/203/src/main/java/com/nari/vcm/vgm/mapper/ImpCustomerManaMapper.java
+END

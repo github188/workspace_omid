@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.sysman.mapper.MainPageMapper">
+
+  <cache />
+  
+  <select id="rightQuery_1" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT AA.EXCEPT_TYPE_NAME,
+       AA.EVENT_NAME,
+       AA.EXCETION_NUM1,
+       AA.EXCETION_NUM2,
+       AA.EXCETION_NUM3
+  FROM (SELECT VWE.EXCEPT_TYPE_NAME AS EXCEPT_TYPE_NAME,
+               B.EVENT_NAME,
+                COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.ALARM_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+               COUNT(CASE A.FLOW_STATUS_CODE
+                       WHEN '1' THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM2,
+               COUNT(CASE
+                       WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM3
+          FROM A_ALARM_ANALYSE A, B_PROTOCOL_EVENT B, VW_EXCEPT_TYPE VWE
+         WHERE A.EVENT_LEVEL = '01'
+           AND A.ALARM_CODE = B.EVENT_NO
+           AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+         GROUP BY VWE.EXCEPT_TYPE_NAME, B.EVENT_NAME
+         ORDER BY VWE.EXCEPT_TYPE_NAME) AA
+UNION (SELECT '终端异常' AS EXCEPT_TYPE_NAME,
+              B.EVENT_NAME,
+              COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.TERMINAL_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+              COUNT(CASE A.FLOW_STATUS_CODE
+                      WHEN '1' THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM2,
+              COUNT(CASE
+                      WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM3
+         FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+        WHERE A.EVENT_LEVEL = '01'
+          AND A.EXCEPT_CODE = B.EVENT_NO
+        GROUP BY B.EVENT_NAME)
+  </select>
+  <select id="rightQuery_2" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT AA.EXCEPT_TYPE_NAME,
+       AA.EVENT_NAME,
+       AA.EXCETION_NUM1,
+       AA.EXCETION_NUM2,
+       AA.EXCETION_NUM3
+  FROM (SELECT VWE.EXCEPT_TYPE_NAME AS EXCEPT_TYPE_NAME,
+               B.EVENT_NAME,
+                COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.ALARM_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+               COUNT(CASE A.FLOW_STATUS_CODE
+                       WHEN '1' THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM2,
+               COUNT(CASE
+                       WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM3
+          FROM A_ALARM_ANALYSE A, B_PROTOCOL_EVENT B, VW_EXCEPT_TYPE VWE
+         WHERE A.EVENT_LEVEL = '02'
+           AND A.ALARM_CODE = B.EVENT_NO
+           AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+         GROUP BY VWE.EXCEPT_TYPE_NAME, B.EVENT_NAME
+         ORDER BY VWE.EXCEPT_TYPE_NAME) AA
+UNION (SELECT '终端异常' AS EXCEPT_TYPE_NAME,
+              B.EVENT_NAME,
+               COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.TERMINAL_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+              COUNT(CASE A.FLOW_STATUS_CODE
+                      WHEN '1' THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM2,
+              COUNT(CASE
+                      WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM3
+         FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+        WHERE A.EVENT_LEVEL = '02'
+          AND A.EXCEPT_CODE = B.EVENT_NO
+        GROUP BY B.EVENT_NAME)
+  </select>
+    <select id="rightQuery_3" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT AA.EXCEPT_TYPE_NAME,
+       AA.EVENT_NAME,
+       AA.EXCETION_NUM1,
+       AA.EXCETION_NUM2,
+       AA.EXCETION_NUM3
+  FROM (SELECT VWE.EXCEPT_TYPE_NAME AS EXCEPT_TYPE_NAME,
+               B.EVENT_NAME,
+               COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.ALARM_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+               COUNT(CASE A.FLOW_STATUS_CODE
+                       WHEN '1' THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM2,
+               COUNT(CASE
+                       WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM3
+          FROM A_ALARM_ANALYSE A, B_PROTOCOL_EVENT B, VW_EXCEPT_TYPE VWE
+         WHERE A.EVENT_LEVEL = '03'
+           AND A.ALARM_CODE = B.EVENT_NO
+           AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+         GROUP BY VWE.EXCEPT_TYPE_NAME, B.EVENT_NAME
+         ORDER BY VWE.EXCEPT_TYPE_NAME) AA
+UNION (SELECT '终端异常' AS EXCEPT_TYPE_NAME,
+              B.EVENT_NAME,
+               COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.TERMINAL_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+              COUNT(CASE A.FLOW_STATUS_CODE
+                      WHEN '1' THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM2,
+              COUNT(CASE
+                      WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM3
+         FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+        WHERE A.EVENT_LEVEL = '03'
+          AND A.EXCEPT_CODE = B.EVENT_NO
+        GROUP BY B.EVENT_NAME)
+  </select>
+    <select id="rightQuery_4" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT AA.EXCEPT_TYPE_NAME,
+       AA.EVENT_NAME,
+       AA.EXCETION_NUM1,
+       AA.EXCETION_NUM2,
+       AA.EXCETION_NUM3
+  FROM (SELECT VWE.EXCEPT_TYPE_NAME AS EXCEPT_TYPE_NAME,
+               B.EVENT_NAME,
+               COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.ALARM_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+               COUNT(CASE A.FLOW_STATUS_CODE
+                       WHEN '1' THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM2,
+               COUNT(CASE
+                       WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                        1
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM3
+          FROM A_ALARM_ANALYSE A, B_PROTOCOL_EVENT B, VW_EXCEPT_TYPE VWE
+         WHERE A.EVENT_LEVEL = '04'
+           AND A.ALARM_CODE = B.EVENT_NO
+           AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+         GROUP BY VWE.EXCEPT_TYPE_NAME, B.EVENT_NAME
+         ORDER BY VWE.EXCEPT_TYPE_NAME) AA
+UNION (SELECT '终端异常' AS EXCEPT_TYPE_NAME,
+              B.EVENT_NAME,
+               COUNT(CASE 
+                       WHEN A.FLOW_STATUS_CODE IN('1','2','3') THEN
+                        A.TERMINAL_ID
+                       ELSE
+                        NULL
+                     END) AS EXCETION_NUM1,
+              COUNT(CASE A.FLOW_STATUS_CODE
+                      WHEN '1' THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM2,
+              COUNT(CASE
+                      WHEN A.FLOW_STATUS_CODE IN (2, 3) THEN
+                       1
+                      ELSE
+                       NULL
+                    END) AS EXCETION_NUM3
+         FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+        WHERE A.EVENT_LEVEL = '04'
+          AND A.EXCEPT_CODE = B.EVENT_NO
+        GROUP BY B.EVENT_NAME)
+  </select>
+<select id="rightQuery_5" useCache="false" parameterType="string" resultType="java.util.HashMap">
+SELECT SUM(C.EXCETION_NUM) EXCETION_NUM,
+       SUM(C.EXCETION_NUM1) EXCETION_NUM1,
+       SUM(C.EXCETION_NUM2) EXCETION_NUM2,
+       SUM(C.EXCETION_NUM3) EXCETION_NUM3,
+       SUM(C.EXCETION_NUM4) EXCETION_NUM4
+  FROM (SELECT AA.EXCEPT_TYPE_NAME,
+               AA.EVENT_NAME,
+               AA.EXCETION_NUM,
+               AA.EXCETION_NUM1,
+               AA.EXCETION_NUM2,
+               AA.EXCETION_NUM3,
+               AA.EXCETION_NUM4
+          FROM (SELECT VWE.EXCEPT_TYPE_NAME AS EXCEPT_TYPE_NAME,
+                       B.EVENT_NAME,
+                       COUNT(A.ALARM_ID) AS EXCETION_NUM,
+                       COUNT(CASE A.EVENT_LEVEL
+                               WHEN '01' THEN
+                                1
+                               ELSE
+                                NULL
+                             END) AS EXCETION_NUM1,
+                       COUNT(CASE A.EVENT_LEVEL
+                               WHEN '02' THEN
+                                1
+                               ELSE
+                                NULL
+                             END) AS EXCETION_NUM2,
+                       COUNT(CASE A.EVENT_LEVEL
+                               WHEN '03' THEN
+                                1
+                               ELSE
+                                NULL
+                             END) AS EXCETION_NUM3,
+                       COUNT(CASE A.EVENT_LEVEL
+                               WHEN '04' THEN
+                                1
+                               ELSE
+                                NULL
+                             END) AS EXCETION_NUM4
+                  FROM A_ALARM_ANALYSE  A,
+                       B_PROTOCOL_EVENT B,
+                       VW_EXCEPT_TYPE   VWE
+                 WHERE A.ALARM_CODE = B.EVENT_NO
+                   AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+                 GROUP BY VWE.EXCEPT_TYPE_NAME, B.EVENT_NAME
+                 ORDER BY VWE.EXCEPT_TYPE_NAME) AA
+        UNION (SELECT '终端异常' AS EXCEPT_TYPE_NAME,
+                     B.EVENT_NAME,
+                     COUNT(A.TERMINAL_ID) AS EXCETION_NUM,
+                     COUNT(CASE A.EVENT_LEVEL
+                             WHEN '01' THEN
+                              1
+                             ELSE
+                              NULL
+                           END) AS EXCETION_NUM1,
+                     COUNT(CASE A.EVENT_LEVEL
+                             WHEN '02' THEN
+                              1
+                             ELSE
+                              NULL
+                           END) AS EXCETION_NUM2,
+                     COUNT(CASE A.EVENT_LEVEL
+                             WHEN '03' THEN
+                              1
+                             ELSE
+                              NULL
+                           END) AS EXCETION_NUM3,
+                     COUNT(CASE A.EVENT_LEVEL
+                             WHEN '04' THEN
+                              1
+                             ELSE
+                              NULL
+                           END) AS EXCETION_NUM4
+                FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+               WHERE A.EXCEPT_CODE = B.EVENT_NO
+               GROUP BY B.EVENT_NAME)) C
+</select>
+<select id="rightQuery_6" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT T1.ORG_NO,
+       T1.ORG_SHORT_NAME,
+       SUM(T1.EXCETION_NUM + T2.EXCETION_NUM) EXCETION_NUM,
+       SUM(T1.EXCETION_NUM1 + T2.EXCETION_NUM1) EXCETION_NUM1,
+       SUM(T1.EXCETION_NUM2 + T2.EXCETION_NUM2) EXCETION_NUM2,
+       SUM(T1.EXCETION_NUM3 + T2.EXCETION_NUM3) EXCETION_NUM3,
+       SUM(T1.EXCETION_NUM4 + T2.EXCETION_NUM4) EXCETION_NUM4,
+       <choose>
+			<when test="queryCode==1">
+			   (case
+		         when SUM(T1.EXCETION_NUM1 + T2.EXCETION_NUM1) > 0 then
+		         	2
+		         else
+		          	0
+		       end) remark
+		  	</when>
+		  	<when test="queryCode==2">
+			   (case
+		         when SUM(T1.EXCETION_NUM2 + T2.EXCETION_NUM2) > 0 then
+		         	1
+		         else
+		          	0
+		       end) remark
+		  	</when>
+		  	<when test="queryCode==3">
+			   (case
+		         when SUM(T1.EXCETION_NUM3 + T2.EXCETION_NUM3) > 0 then
+		         	3
+		         else
+		          	0
+		       end) remark
+		  	</when>
+           	<otherwise>
+       			(case
+		         when SUM(T1.EXCETION_NUM4 + T2.EXCETION_NUM4) > 0 then
+		         	4
+		         else
+		          	0
+		       end) remark
+           	</otherwise>
+       </choose>
+  FROM (SELECT BBB.*
+          FROM (SELECT O.ORG_NO,
+                       O.ORG_SHORT_NAME,
+                       DECODE(AA.EXCETION_NUM, NULL, 0, AA.EXCETION_NUM) EXCETION_NUM,
+                       DECODE(AA.EXCETION_NUM1, NULL, 0, AA.EXCETION_NUM1) EXCETION_NUM1,
+                       DECODE(AA.EXCETION_NUM2, NULL, 0, AA.EXCETION_NUM2) EXCETION_NUM2,
+                       DECODE(AA.EXCETION_NUM3, NULL, 0, AA.EXCETION_NUM3) EXCETION_NUM3,
+                       DECODE(AA.EXCETION_NUM4, NULL, 0, AA.EXCETION_NUM4) EXCETION_NUM4
+                  FROM (SELECT A.ORG_NO,
+                               COUNT(A.TERMINAL_ID) AS EXCETION_NUM,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '01' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM1,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '02' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM2,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '03' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM3,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '04' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM4
+                          FROM A_TMNL_EXCEPTION A, B_PROTOCOL_EVENT B
+                         WHERE A.EXCEPT_CODE = B.EVENT_NO
+                         GROUP BY A.ORG_NO) AA,
+                       sea_o_org O
+                 WHERE AA.ORG_NO(+) = O.ORG_NO
+                   AND O.ORG_TYPE = '03') BBB) T1,
+       (SELECT AAA.*
+          FROM (SELECT AH.ORG_NO,
+                       AH.ORG_SHORT_NAME,
+                       DECODE(AA.EXCETION_NUM, NULL, 0, AA.EXCETION_NUM) EXCETION_NUM,
+                       DECODE(AA.EXCETION_NUM1, NULL, 0, AA.EXCETION_NUM1) EXCETION_NUM1,
+                       DECODE(AA.EXCETION_NUM2, NULL, 0, AA.EXCETION_NUM2) EXCETION_NUM2,
+                       DECODE(AA.EXCETION_NUM3, NULL, 0, AA.EXCETION_NUM3) EXCETION_NUM3,
+                       DECODE(AA.EXCETION_NUM4, NULL, 0, AA.EXCETION_NUM4) EXCETION_NUM4
+                  FROM (SELECT A.ORG_NO,
+                               COUNT(A.ALARM_ID) AS EXCETION_NUM,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '01' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM1,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '02' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM2,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '03' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM3,
+                               COUNT(CASE A.EVENT_LEVEL
+                                       WHEN '04' THEN
+                                        1
+                                       ELSE
+                                        NULL
+                                     END) AS EXCETION_NUM4
+                          FROM A_ALARM_ANALYSE  A,
+                               B_PROTOCOL_EVENT B,
+                               VW_EXCEPT_TYPE   VWE
+                         WHERE A.ALARM_CODE = B.EVENT_NO
+                           AND A.ALARM_TYPE = VWE.EXCEPT_TYPE
+                         GROUP BY A.ORG_NO) AA,
+                       sea_o_org AH
+                 WHERE AA.ORG_NO(+) = AH.ORG_NO
+                   AND AH.ORG_TYPE = '03') AAA) T2
+ WHERE T1.ORG_NO = T2.ORG_NO
+ GROUP BY T1.ORG_NO, T1.ORG_SHORT_NAME
+</select>
+</mapper>

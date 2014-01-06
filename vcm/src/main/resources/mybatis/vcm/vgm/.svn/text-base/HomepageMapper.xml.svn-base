@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.vcm.vgm.mapper.HomepageMapper">
+<select id="getVipCustomer" parameterType="hashmap" resultType="hashmap">
+	  	  	SELECT VCMO.ORG_NO, VCMO.ORG_NAME
+ 	  FROM VCM_O_ORG VCMO
+ 	WHERE VCMO.P_ORG_NO = #{vcmOrgNo}
+   	   OR VCMO.ORG_NO = #{vcmOrgNo}
+	  </select>
+	  <select id="queryTgOrgNo" useCache="false" resultType="java.util.HashMap">
+  	SELECT VCMO.ORG_NO, VCMO.ORG_NAME
+ 	  FROM VCM_O_ORG VCMO
+ 	WHERE VCMO.P_ORG_NO = #{vcmOrgNo}
+   	   OR VCMO.ORG_NO = #{vcmOrgNo}
+  </select>
+</mapper>
+

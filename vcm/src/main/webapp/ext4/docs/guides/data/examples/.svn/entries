@@ -1,0 +1,46 @@
+9
+
+dir
+218
+https://192.168.176.95/svn/vcm/src/main/webapp/ext4/docs/guides/data/examples
+https://192.168.176.95/svn/vcm
+
+
+
+2012-12-20T05:51:43.796875Z
+59
+wushaoxiong
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fd1ed11a-c3f3-4f41-b40f-00f8df51a901
+
+associations_validations
+dir
+
+inline_data
+dir
+
+lazy_associations
+dir
+
+model_with_proxy
+dir
+
+simple_store
+dir
+
+sorting_grouping_filtering_store
+dir
+

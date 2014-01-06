@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	
+	<plugins>
+		<plugin interceptor="com.nari.common.mybatis.pagination.ResultSetInterceptor" />
+		<plugin interceptor="com.nari.common.mybatis.pagination.PageInterceptor">
+			<property name="dialect" value="oracle" />
+		</plugin>
+	</plugins>
+	
+	<mappers>
+		<mapper resource="mybatis/vcm/vgm/GroupModelManageMapper.xml"/>
+		<mapper resource="mybatis/vcm/vgm/CustomerGroupManaMapper.xml"/>
+		<mapper resource="mybatis/vcm/vgm/ImpCustomerManaMapper.xml"/>
+		<mapper resource="mybatis/vcm/vgm/GroupModelManageMapper.xml" /> 
+		<mapper resource="mybatis/vcm/vgm/AssessmentObjPropertyMapper.xml"/>
+	</mappers>  
+	
+</configuration>

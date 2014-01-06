@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.vcm.vgm.mapper.CustomerGroupManaMapper">
+
+  <cache />
+  
+  
+  
+        <select id="queryImpCustomer" useCache="false" resultType="java.util.HashMap">
+  	SELECT *
+ 	  FROM C_CUST_VCM
+ 	  where
+ 	  CUST_NO like '%${impCustomerID}%'
+ 	  and
+ 	  CUST_NAME like '%${impCustomerName}%'
+ 	  and
+ 	  CUST_ID not in (
+ 	  select CUST_ID
+ 	  from s_cust_group_obj
+ 	  where 
+ 	  CUST_GROUP_ID = '${customerGroupID_Add}'
+ 	  )
+ 	  
+  </select>
+  
+    <update id="updateCustomerGroup" parameterType="hashmap">
+  
+    update S_CUST_GROUP t 
+    set  
+    t.CUST_GROUP_NAME='${customerGroupName}',
+    t.CREATOR_NO='${customerGroupFounderName}',
+    t.GEN_DATE=to_date('${customerGroupBuildTime}','YYYY-MM-DD'),
+    t.USAGE_DESC='${customerGroupUsageDescription}',
+    t.UASAGE_TYPE_CODE='${customerGroupUsageType}',
+    t.GROUP_TYPE_CODE='${customerGroupType}',
+    t.REFRESH_CYCLE_CODE='${customerGroupRefreshCycle}',
+    t.REFRESH_MODE='${customerGroupRefreshMode}',
+    t.CUST_GTOUP_MODEL_ID=to_number('${customerGroupModelName}')
+    where 
+    t.CUST_GROUP_ID=to_number('${customerGroupID}')
+  </update>
+  
+      <delete id="delCustomerGroupMemeber" parameterType="hashmap">
+  
+    delete from s_cust_group_obj t 
+    where
+    t.CUST_ID=#{CUST_GROUP_OBJ_ID2}
+    and
+    CUST_GROUP_ID = '${customerGroupID}'
+  </delete>
+    
+    <delete id="delCustomerGroup" parameterType="hashmap">
+  
+    delete from S_CUST_GROUP t where t.CUST_GROUP_ID=#{customerGroupID}
+  </delete>
+      <delete id="delCustomerGroupMember_All" parameterType="hashmap">
+  
+    delete from s_cust_group_obj t where t.CUST_GROUP_ID=#{customerGroupID}
+  </delete>
+  
+    <select id="queryAll" useCache="false" resultType="java.util.HashMap">
+  	SELECT *
+ 	  FROM S_CUST_GROUP
+ 	  
+  </select>
+  
+    
+        <select id="queryCustomerGroupMember" useCache="false" resultType="java.util.HashMap">
+        	
+      SELECT *
+ 	  FROM C_CUST_VCM
+ 	  where
+ 	  CUST_ID in (
+ 	  select CUST_ID
+ 	  from s_cust_group_obj
+ 	  where 
+ 	  CUST_GROUP_ID = '${customerGroupID}'
+ 	  )
+ 	   	   	  
+  </select>
+  
+      <select id="querybyCon" useCache="false" resultType="java.util.HashMap">
+  	SELECT *
+ 	  FROM S_CUST_GROUP
+ 	  where
+ 	  CUST_GROUP_NAME like '%${customerGroupName}%'
+ 	  and
+ 	  GEN_DATE between to_date('${customerGroupStartBuildTimeQ}','YYYY-MM-DD') and to_date('${customerGroupEndBuildTimeQ}','YYYY-MM-DD')
+ 	  and
+ 	  GROUP_TYPE_CODE like '%${customerGroupType}%'
+ 	  
+  </select>
+  
+    <insert id="createCustomerGroup" parameterType="hashmap">
+  	MERGE INTO S_CUST_GROUP CG
+    USING(
+    SELECT '${customerGroupID}' AS CUST_GROUP_ID,'${customerGroupName}' AS CUST_GROUP_NAME,'${customerGroupFounderName}' AS CREATOR_NO,to_date('${customerGroupBuildTime}','YYYY-MM-DD') AS GEN_DATE,'${customerGroupUsageDescription}' AS USAGE_DESC,
+    '${customerGroupUsageType}' AS UASAGE_TYPE_CODE,'${customerGroupType}' AS GROUP_TYPE_CODE,'${customerGroupRefreshCycle}' AS REFRESH_CYCLE_CODE,'${customerGroupRefreshMode}' AS REFRESH_MODE,to_number(${customerGroupModelName}) AS CUST_GROUP_MODEL_ID from dual
+    )SRC ON(CG.CUST_GROUP_ID=SRC.CUST_GROUP_ID)
+    WHEN MATCHED THEN
+       UPDATE SET CG.CUST_GROUP_NAME=SRC.CUST_GROUP_NAME,CG.CREATOR_NO=SRC.CREATOR_NO,CG.GEN_DATE=SRC.GEN_DATE,CG.USAGE_DESC=SRC.USAGE_DESC,
+       CG.UASAGE_TYPE_CODE=SRC.UASAGE_TYPE_CODE,CG.GROUP_TYPE_CODE=SRC.GROUP_TYPE_CODE,CG.REFRESH_CYCLE_CODE=SRC.REFRESH_CYCLE_CODE,CG.REFRESH_MODE=SRC.REFRESH_MODE,
+       CG.CUST_GROUP_MODEL_ID=SRC.CUST_GROUP_MODEL_ID
+    WHEN NOT MATCHED THEN
+  insert(CUST_GROUP_ID,CUST_GROUP_NAME,CREATOR_NO,GEN_DATE,USAGE_DESC,
+UASAGE_TYPE_CODE,GROUP_TYPE_CODE,REFRESH_CYCLE_CODE,REFRESH_MODE,CUST_GROUP_MODEL_ID)
+  	values(S_S_CUST_GROUP.NEXTVAL,#{customerGroupName},#{customerGroupFounderName},to_date('${customerGroupBuildTime}','YYYY-MM-DD'),#{customerGroupUsageDescription},
+#{customerGroupUsageType},#{customerGroupType},#{customerGroupRefreshCycle},#{customerGroupRefreshMode},to_number(${customerGroupModelName}))
+  </insert>
+  
+  
+  
+      <insert id="createCustomerGroupMember" parameterType="hashmap">
+insert into s_cust_group_obj(CUST_GROUP_OBJ_ID,CUST_GROUP_ID,CUST_ID) 
+values(s_s_cust_group_obj.NEXTVAL,to_number('${customerGroupID_Add}'),'${CUST_GROUP_OBJ_ID_Add}')
+  </insert>
+  <!--<select id= "queryTgInfo" useCache="false" resultType="java.util.HashMap">
+	 SELECT SEAG.TG_ID,
+        SEAG.TG_NAME,
+        SEAG.ORG_NO,
+        O.ORG_NAME,
+        SEAC.CONS_NO,
+        SEAG.TG_CAP,
+        SEAG.TG_NAME,
+        SEAG.INST_ADDR,
+        SEAG.PUB_PRIV_FLAG,
+        VWT.CONS_TYPE,
+        VWT.EVENT_LEVEL,
+        VWT.TERMINAL_ID,
+        VWT.COLLECTOR_ID,                                                                                                                                                             
+        TO_CHAR(VWT.METER_ID) METER_ID,
+        SEAC.COMM_ADDR1,
+        SEAT.TMNL_ASSET_NO,
+        SEAT.TERMINAL_ADDR,
+        VWM.COLL_MODE,
+        VTT.TMNL_TYPE,
+        SEAC.COMM_ADDR1,
+        SEAR.COMM_ADDR,
+        DECODE(VWT.EVENT_LEVEL,
+               '01',
+               '#D4101D',
+               '02',
+               '#D46B1D',
+               '03',
+               '#C7CF18',
+               '04',
+               '#026115') STATE_COLOR,
+        (VWE.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+        VWS.EVENT_NO,
+        VWS.EVENT_NAME
+   FROM VW_TG_EXCEPTION       VWT,
+        SEA_G_TG              SEAG,
+        SEA_C_METER           SEAC,
+        SEA_VW_TMNL_RUN       SEAT,
+        VW_COLL_MODE          VWM,
+        SEA_VW_TMNL_TYPE_CODE VTT,
+        SEA_O_ORG             O,
+        VW_EVENT_LEVEL        VWE,
+        SEA_R_EXEC_OTHER_DEV  SEAR,
+        VW_SEA_ALARM_CODE     VWS
+  WHERE SEAG.TG_ID = VWT.TG_ID
+    AND VWT.METER_ID = SEAC.METER_ID
+    AND VWT.TERMINAL_ID = SEAT.TERMINAL_ID
+    AND VWM.COLL_MODE_CODE = SEAT.COLL_MODE
+    AND VTT.TMNL_TYPE_CODE = SEAT.TERMINAL_TYPE_CODE
+    AND O.ORG_NO = SEAG.ORG_NO
+    AND SEAC.FMR_ASSET_NO = SEAR.COLLECTOR_ID
+    AND VWE.EVENT_LEVEL = VWT.EVENT_LEVEL
+    AND VWT.ALARM_CODE = VWS.EVENT_NO
+    AND SEAG.TG_ID = #{tgId}
+ 
+  </select>
+  <select id= "querTgTotal" useCache="false" resultType="java.util.HashMap">
+  	SELECT ATG.PPQ,
+       ATG.TG_SPQ,
+       ATG.READ_CNT,
+       ATG.READ_SUCC_CNT,
+       (ROUND(ATG.READ_SUCC_RATE, 2) || '％') READ_SUCC_RATE,
+       (CASE
+         WHEN ATG.PPQ = 0 OR ATG.PPQ IS NULL OR  ATG.TG_SPQ>ATG.PPQ  OR
+              ATG.TG_SPQ=0 OR ATG.TG_SPQ IS NULL THEN
+          '0'
+         WHEN ATG.PPQ > 0 THEN
+          ROUND((ATG.PPQ - ATG.TG_SPQ)/ATG.PPQ*100,2)||'％'
+       END) READ_FAIL_RATE
+  FROM SEA_A_TG_PQ ATG
+ WHERE ATG.TG_ID = #{tgId}
+   AND ATG.ORG_NO = #{orgNo}
+   AND ATG.ORG_TYPE = #{orgType}
+   AND ATG.STAT_DATE = #{stateDate}
+  </select>
+<select id="queryLineInfo" useCache="false" parameterType="String" resultType="hashmap">
+	SELECT O.ORG_NO,
+       O.ORG_NAME,
+       GL.LINE_NAME,
+       GL.LINE_ID,
+       GL.LINE_NO,
+       SUM(CASE
+             WHEN TL.STATUS_CODE IN (1, 2, 3) THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT,
+       SUM(CASE
+             WHEN TL.ALARM_TYPE = '01' AND TL.STATUS_CODE IN (1, 2, 3) THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_1,
+       SUM(CASE
+             WHEN TL.ALARM_TYPE = '02' AND TL.STATUS_CODE IN (1, 2, 3) THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_2,
+       SUM(CASE
+             WHEN TL.ALARM_TYPE = '03' AND TL.STATUS_CODE IN (1, 2, 3) THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_3,
+       SUM(CASE
+             WHEN TL.CONS_SORT IN ('01', '02') THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_4,
+       SUM(CASE
+             WHEN TL.CONS_SORT = '06' THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_5,
+       SUM(CASE
+             WHEN TL.CONS_SORT IN ('03', '04', '05') THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_6
+  FROM T_LINE_ALARM_D TL, SEA_G_LINE GL, SEA_O_ORG O
+ WHERE GL.LINE_ID = TL.LINE_ID
+   AND O.ORG_NO = GL.ORG_NO
+   <if test ="map.orgNo!=34101">
+	   AND O.ORG_NO = #{map.orgNo}	
+   </if>
+   <if test="map.lineId!=null and map.lineId!=''">
+		AND TL.LINE_ID=#{map.lineId}
+   </if>
+   AND TL.STAT_DATE = TO_DATE(#{map.stateDate},'YYYY-MM-DD')
+ GROUP BY O.ORG_NO, GL.LINE_NAME, GL.LINE_ID, GL.LINE_NO, O.ORG_NAME
+</select>
+<select id="querySubs"  resultType="hashmap">
+SELECT GS.SUBS_ID, GS.SUBS_NAME, GS.SUBS_ADDR, GS.MT_CAP, L.LINE_NAME,O.ORG_NAME
+  FROM SEA_G_SUBS GS, SEA_G_SUBS_LINE_RELA SL, SEA_G_LINE L,SEA_O_ORG O
+ WHERE GS.SUBS_ID = SL.SUBS_ID
+   AND O.ORG_NO = L.ORG_NO
+   AND SL.LINE_ID = L.LINE_ID
+   AND SL.LINE_ID = #{lineId}
+</select>
+<select id= "queryAsLine" resultType="hashmap">
+SELECT GL.LINE_ID,
+       CC.CONS_SORT,
+       DECODE(CC.CONS_SORT, '06', 'SHARE', 'SELF') PROP,
+       GL.LINE_NAME,
+       O.ORG_NAME,
+       CC.CONS_NAME,
+       CC.SUBS_ID,
+       CC.RUN_CAP,
+       AA.ALARM_TYPE,
+       AA.EVENT_LEVEL,
+       DECODE(AA.EVENT_LEVEL,'01','04','02','03','03','02','04','01')EVENT_LEVEL_FU,
+       (VW.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+       DECODE(AA.EVENT_LEVEL,
+              '01',
+              '#D4101D',
+              '02',
+              '#D46B1D',
+              '03',
+              '#C7CF18',
+              '04',
+              '#026115') STATE_COLOR
+  FROM SEA_C_MP        MP,
+       SEA_C_CONS      CC,
+       SEA_G_LINE      GL,
+       A_ALARM_ANALYSE AA,
+       VW_EVENT_LEVEL  VW,
+       VW_EXCEPT_TYPE  VWE,
+       SEA_O_ORG       O
+ WHERE MP.CONS_NO = CC.CONS_NO
+   AND MP.LINE_ID = GL.LINE_ID
+   AND AA.CONS_NO = CC.CONS_NO
+   AND AA.EVENT_LEVEL = VW.EVENT_LEVEL
+   AND VWE.EXCEPT_TYPE = AA.ALARM_TYPE
+   AND GL.ORG_NO = O.ORG_NO
+   AND CC.CONS_SORT IN ('01', '02', '06', '07', '08', '09')
+   AND GL.LINE_ID IN (SELECT GL.LINE_ID
+                        FROM SEA_G_LINE_RELA GL, SEA_G_LINE SGL
+                       WHERE GL.LINE_ID = SGL.LINE_ID
+                         AND GL.LINK_LINE_ID = #{lineId})
+
+</select>
+<select id= "queryMainAsLine"  resultType="hashmap">
+SELECT GL.LINE_ID,
+       CC.CONS_SORT,
+       DECODE(CC.CONS_SORT, '06', 'SHARE', 'SELF') PROP,
+       GL.LINE_NAME,
+       O.ORG_NAME,
+       CC.CONS_NAME,
+       CC.SUBS_ID,
+       CC.RUN_CAP,
+       AA.ALARM_TYPE,
+       AA.EVENT_LEVEL,
+       DECODE(AA.EVENT_LEVEL,'01','04','02','03','03','02','04','01')EVENT_LEVEL_FU,
+       (VW.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+       DECODE(AA.EVENT_LEVEL,
+              '01',
+              '#D4101D',
+              '02',
+              '#D46B1D',
+              '03',
+              '#C7CF18',
+              '04',
+              '#026115') STATE_COLOR
+  FROM SEA_C_MP        MP,
+       SEA_C_CONS      CC,
+       SEA_G_LINE      GL,
+       A_ALARM_ANALYSE AA,
+       VW_EVENT_LEVEL  VW,
+       VW_EXCEPT_TYPE  VWE,
+       SEA_O_ORG       O
+ WHERE MP.CONS_NO = CC.CONS_NO
+   AND MP.LINE_ID = GL.LINE_ID
+   AND AA.CONS_NO = CC.CONS_NO
+   AND AA.EVENT_LEVEL = VW.EVENT_LEVEL
+   AND VWE.EXCEPT_TYPE = AA.ALARM_TYPE
+   AND O.ORG_NO  = GL.ORG_NO
+   AND CC.CONS_SORT IN ('01', '02', '06', '07', '08', '09')
+   AND GL.LINE_ID = #{lineId}
+</select>
+<select id='queryConsNum' resultType="hashmap">
+SELECT VWC.CONS_SORT_NAME, DECODE(T.CNT,NULL,'0',T.CNT)CNT
+  FROM (SELECT C.CONS_SORT, DECODE(COUNT(1), NULL, 0, COUNT(1)) CNT
+          FROM SEA_C_MP MP, SEA_C_CONS C, VW_CONS_SORT VWC
+         WHERE MP.LINE_ID IN
+               (SELECT GL.LINE_ID
+                  FROM SEA_G_LINE_RELA GL, SEA_G_LINE SGL
+                 WHERE GL.LINE_ID = SGL.LINE_ID
+                   AND GL.LINK_LINE_ID = #{lineId})
+           AND C.CONS_NO = MP.CONS_NO
+           AND VWC.CONS_SORT = C.CONS_SORT
+         GROUP BY C.CONS_SORT
+        UNION
+        SELECT C.CONS_SORT, DECODE(COUNT(1), NULL, 0, COUNT(1)) CNT
+          FROM SEA_C_MP MP, SEA_C_CONS C, VW_CONS_SORT VWC
+         WHERE MP.LINE_ID = #{lineId}
+           AND C.CONS_NO = MP.CONS_NO
+           AND VWC.CONS_SORT = C.CONS_SORT
+         GROUP BY C.CONS_SORT) T,
+       VW_CONS_SORT VWC
+ WHERE VWC.CONS_SORT = T.CONS_SORT(+)
+ ORDER BY VWC.CONS_SORT
+</select>
+<select id ="queryLineId" resultType="hashmap">
+	SELECT GL.LINK_LINE_ID
+  FROM SEA_G_LINE_RELA GL
+ WHERE GL.LINE_ID = #{lineId}
+   AND GL.CASCADE_FLAG = '0'
+</select>
+-->
+
+</mapper>

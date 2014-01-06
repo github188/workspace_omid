@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/vcm/!svn/ver/187/src/main/resources
+END
+struts.xml_
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/vcm/!svn/ver/3/src/main/resources/struts.xml_
+END
+log4j.properties
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/vcm/!svn/ver/3/src/main/resources/log4j.properties
+END
+ehcache_hibernate.xml
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/vcm/!svn/ver/3/src/main/resources/ehcache_hibernate.xml
+END
+spring-config.xml
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/vcm/!svn/ver/221/src/main/resources/spring-config.xml
+END
+struts.xml
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/vcm/!svn/ver/3/src/main/resources/struts.xml
+END
+resources.properties
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/vcm/!svn/ver/184/src/main/resources/resources.properties
+END

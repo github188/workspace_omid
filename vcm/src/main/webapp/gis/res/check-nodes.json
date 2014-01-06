@@ -1,0 +1,26 @@
+[{
+    "text": "异常等级", 
+    "cls": "folder",
+    "expanded": true,
+    "children": [{
+        "text": "严重",
+        "leaf": true,
+        "range": "error1",
+        "checked": true
+    },{
+        "text": "重要",
+        "leaf": true,
+        "range": "error2",
+        "checked": true
+    },{
+        "text": "较重要",
+        "leaf": true,
+        "range": "error3",
+        "checked": true
+    },{
+        "text": "一般",
+        "leaf": true,
+        "range": "error4",
+        "checked": true
+    }]
+}]

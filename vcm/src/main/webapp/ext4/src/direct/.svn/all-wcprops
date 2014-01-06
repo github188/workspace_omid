@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct
+END
+RemotingEvent.js
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/RemotingEvent.js
+END
+RemotingMethod.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/RemotingMethod.js
+END
+PollingProvider.js
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/PollingProvider.js
+END
+RemotingProvider.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/RemotingProvider.js
+END
+Provider.js
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/Provider.js
+END
+Transaction.js
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/Transaction.js
+END
+Manager.js
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/Manager.js
+END
+ExceptionEvent.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/ExceptionEvent.js
+END
+Event.js
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/Event.js
+END
+JsonProvider.js
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/vcm/!svn/ver/3/src/main/webapp/ext4/src/direct/JsonProvider.js
+END

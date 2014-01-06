@@ -1,0 +1,40 @@
+9
+
+dir
+218
+https://192.168.176.95/svn/vcm/src/main/webapp/ext4/examples/app/simple/app
+https://192.168.176.95/svn/vcm
+
+
+
+2012-12-20T08:04:34.765625Z
+98
+wushaoxiong
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+fd1ed11a-c3f3-4f41-b40f-00f8df51a901
+
+controller
+dir
+
+model
+dir
+
+store
+dir
+
+view
+dir
+

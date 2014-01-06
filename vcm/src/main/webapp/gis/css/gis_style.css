@@ -1,0 +1,33 @@
+#gis_pop_clicken {
+  border: 1px solid rgba(0, 0, 0, .50);
+  background: #fff; -webkit-box-shadow: 0px 2px 4px rgba(0, 0, 0, .50);
+  background: -webkit-linear-gradient(#fff, #f6f6f6);
+  color: black;
+  white-space: nowrap ;
+  padding: 8px 0;
+  margin: 0;
+  cursor: default;
+  border-radius:2px;
+  z-index: 3;
+}
+#gis_pop_clicken li.separator {
+  background: -webkit-linear-gradient(left, rgba(0, 0, 0, .10), rgba(0, 0, 0, .02) 76 % );
+  border: 0;
+  height: 1px;
+  padding: 0 15px;
+  margin: 8px 0;
+}
+#gis_pop_clicken ul {
+  list-style: none;
+  border: 0!important;
+  min-width: 80px;
+  margin: 0;
+}
+#gis_pop_clicken ul li {
+  padding: 1px 15px;
+  margin: 1px 0;
+  display: block;
+}
+#gis_pop_clicken ul li:not([class="separator"]):hover {background:#DCE5FA;}
+#gis_pop_clicken ul li:not([class="separator"]):active {background:#426DC9;color:#fff}
+

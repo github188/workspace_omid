@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.GisMapper">
+
+  <cache />
+
+  <select id="queryCp" useCache="false"  resultType="hashmap">
+
+	 select distinct (t.terminal_id) as terminal_id,
+		                t.org_no,
+		                t.terminal_addr,
+		                t.area_no,
+                    cp.cp_addr,
+                    cp.name,
+                    cp.gps_latitude,
+                    cp.gps_longitude,
+                    cp.cp_no,
+                    org.org_name 
+                    
+                    
+		  from sea_vw_tmnl_run t,sea_r_cp cp,sea_o_org org
+      where t.cp_no = cp.cp_no
+      and t.org_no =org.org_no
+		
+   <if test="map.org_no != null and map.org_no !='' ">
+   		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{map.org_no}
+			)ORG WHERE t.ORG_NO=ORG.ORG_NO)
+   </if>
+   <if test="map.tmnl_addr != null and map.tmnl_addr !='' ">
+   		and t.terminal_addr = #{map.tmnl_addr}
+   </if>
+   <if test="map.cp_no != null and map.cp_no !='' ">
+   		and t.cp_no = #{map.cp_no}
+   </if> 
+  </select>
+  
+  <update id="updateCpGPS">
+  	update sea_r_cp
+  	set
+  	 	gps_latitude = #{map.gps_latitude},
+        gps_longitude = #{map.gps_longitude}
+     where cp_no = #{map.cp_no}
+  </update>
+  
+  <select id="queryCpByAlarmType" resultType="hashmap" >
+  
+		SELECT DISTINCT (tmnl.terminal_id) AS terminal_id,
+			                DECODE(alarm.event_level,
+			                       '01',
+			                       'error1',
+			                       '02',
+			                       'error2',
+			                       '03',
+			                       'error3',
+			                       '04',
+			                       'error4') AS event_level,
+			                cp.cp_no,
+			                cp.gps_latitude,
+			                cp.gps_longitude,
+		                  cp.cp_addr,
+		                  tmnl.area_no,
+		                  tmnl.terminal_addr,
+		                  cp.name,
+			                alarm.FLOW_STATUS_CODE,
+			                cons.cons_name
+			  FROM  (SELECT terminal_id,
+						  alarm_code,
+						  event_level,
+						  FLOW_STATUS_CODE
+						FROM A_ALARM_ANALYSE alarm
+						WHERE FLOW_STATUS_CODE =1
+						 AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+									  FROM SEA_O_ORG S
+									 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+									 START WITH ORG_NO = #{map.org_no}
+									)ORG WHERE alarm.ORG_NO=ORG.ORG_NO)
+						UNION ALL
+						SELECT TERMINAL_ID,
+						  except_code AS alarm_code,
+						  event_level,
+						  FLOW_STATUS_CODE
+						FROM A_TMNL_EXCEPTION talarm
+						WHERE FLOW_STATUS_CODE =1
+						AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+									  FROM SEA_O_ORG S
+									 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+									 START WITH ORG_NO = #{map.org_no}
+									)ORG WHERE talarm.ORG_NO=ORG.ORG_NO)
+					  )  alarm, sea_vw_tmnl_run tmnl, sea_r_cp cp ,sea_c_cons cons
+			 WHERE alarm.terminal_id = tmnl.terminal_id
+			   	and tmnl.cp_no = cp.cp_no
+			   	and alarm.event_level is not null
+			
+			   	<![CDATA[
+		       	and cp.gps_latitude <> 'null'
+		    	and cp.gps_longitude <> 'null'			   	
+			   	]]>
+		    	and cons.cons_no = tmnl.cons_no
+			  	and cp.gps_latitude is not null
+		    	and cp.gps_longitude is not null
+	<if test="map.event_level != null and map.event_level != '' ">
+		and alarm.event_level = #{map.event_level}
+	</if>
+	<if test="map.event_no != null and map.event_no != '' ">
+		and alarm.alarm_code = #{map.event_no}
+	</if>
+	<if test="map.by_cons == 'yes' ">
+		<if test="map.cons_no != null and map.cons_no != '' ">
+			and tmnl.cons_no = #{map.cons_no}
+		</if>
+		<if test="map.cons_name != null and map.cons_name != '' ">
+			and tmnl.cons_name = #{map.cons_name}
+		</if>
+
+	</if>
+	
+  </select>
+  
+  <select id="queryEventCode"   resultType="hashmap" >
+  	select * from vw_sea_alarm_code
+  	where event_type =#{map.event_type}
+  </select>
+  
+  <select id="queryGisStyleColor" useCache="false" resultType="hashmap">
+  	select param_item_no as error_type,param_item_val as color from b_sys_parameter where param_no = 'GIS_STYLE_COLOR'
+  </select>
+  
+  <select id="queryGisURL" useCache="false" resultType="hashmap">
+  	select param_item_val as URL from b_sys_parameter where param_no = 'GIS' and param_item_no ='GIS_URL'
+  </select>
+  
+</mapper>

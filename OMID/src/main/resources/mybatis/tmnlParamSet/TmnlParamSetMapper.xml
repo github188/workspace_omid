@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.TmnlParamSetMapper">
+	<cache />
+	<select id="queryCallStatusCode" resultType="hashmap">
+		SELECT CALL_STATUS_CODE,CALL_STATUS_NAME FROM VW_CALL_STATUS_CODE UNION SELECT '' AS CALL_STATUS_CODE,'全部' AS CALL_STATUS_NAME FROM DUAL
+	</select>
+	<select id="queryFTaskFrontDet" useCache="false"  resultType="java.util.HashMap">
+	   SELECT R.TERMINAL_ID,F.TASK_ITEM_ID,R.TERMINAL_ADDR,R.PROTOCOL_CODE,VP.PROTOCOL_NAME,R.TERMINAL_TYPE_CODE,VT.TMNL_TYPE,F.EVENT_CODE,FT.TASK_BEGIN_TIME,F.FIRST_CALL_TIME,F.END_CALL_TIME,VC.CALL_STATUS_NAME,F.FAILURE_REMARK,F.CALL_CNT
+       FROM F_TASK_FRONT FT,F_TASK_FRONT_DET F,SEA_VW_TMNL_RUN R,VW_PROTOCOL_CODE VP,SEA_VW_TMNL_TYPE_CODE VT,VW_CALL_STATUS_CODE VC
+       WHERE FT.TASK_ID=F.TASK_ID AND F.TERMINAL_ID=R.TERMINAL_ID AND R.PROTOCOL_CODE=VP.PROTOCOL_CODE(+) AND R.TERMINAL_TYPE_CODE=VT.TMNL_TYPE_CODE(+)
+       AND F.CALL_STATUS_CODE=VC.CALL_STATUS_CODE(+) 
+       <if test = "map.ORG_NO!=''">
+       AND R.ORG_NO IN(SELECT OC.CHILD_ORG_NO FROM SEA.O_ORG_CHILDS OC WHERE OC.ORG_NO=#{map.ORG_NO})
+       </if>
+       <if test = "map.TMNL_TYPE_CODE!=''">
+       AND R.TERMINAL_TYPE_CODE=#{map.TMNL_TYPE_CODE} 
+       </if>
+       <if test = "map.PROTOCOL_CODE!=''">
+       AND R.PROTOCOL_CODE=#{map.PROTOCOL_CODE}
+       </if> 
+       <if test = "map.TERMINAL_ADDR!=''">
+       AND R.TERMINAL_ADDR LIKE '%${map.TERMINAL_ADDR}%'
+       </if>
+       <if test = "map.SEND_STATUS!=''">
+       AND F.CALL_STATUS_CODE = #{map.SEND_STATUS}
+       </if>
+       <if test = "map.TASK_ID!=null">
+       AND F.TASK_ID IN 
+        	<foreach collection="map.TASK_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+            </foreach>
+        </if>
+  </select>
+  <select id="queryFTaskFront" useCache="false" resultType="java.util.HashMap">
+  	SELECT F.TASK_ID,O.ORG_NAME,F.TASK_BEGIN_TIME,F.CALL_SATRT_TIME,F.CALL_END_TIME,V.CALL_STATUS_NAME,F.TASK_SPONSOR
+    FROM F_TASK_FRONT F,SEA_O_ORG O,VW_CALL_STATUS_CODE V WHERE F.ORG_NO=O.ORG_NO
+    AND F.CALL_STATUS_CODE=V.CALL_STATUS_CODE(+) 
+    AND (F.TASK_BEGIN_TIME BETWEEN TO_DATE(#{map.TASK_BEGIN_TIME},'yyyy-MM-DD hh24:mi:ss') AND TO_DATE(#{map.TASK_END_TIME},'yyyy-MM-DD hh24:mi:ss')
+    OR F.TASK_BEGIN_TIME IS NULL)
+    AND (F.CALL_SATRT_TIME BETWEEN TO_DATE(#{map.CALL_SATRT_TIME},'yyyy-MM-DD hh24:mi:ss') AND TO_DATE(#{map.CALL_END_TIME},'yyyy-MM-DD hh24:mi:ss')
+    OR F.CALL_SATRT_TIME IS NULL) 
+    <if test = "map.CALL_STATUS_CODE!=''">
+    AND F.CALL_STATUS_CODE=#{map.CALL_STATUS_CODE}
+    </if>
+    <if test = "map.TASK_SPONSOR!=''">
+    AND F.TASK_SPONSOR=#{map.TASK_SPONSOR}
+    </if>
+  </select>
+  <select id="queryTTmnlParam" parameterType="hashmap" resultType="hashmap">
+  	 SELECT CURRENT_VALUE FROM SEA_T_TMNL_PARAM WHERE TMNL_ASSET_NO=#{TERMINAL_ID} AND PROT_ITEM_NO LIKE '${PROT_ITEM_NO}%' AND BLOCK_SN='0' AND IS_VALID=1 ORDER BY INNER_BLOCK_SN
+  </select>
+  <select id="queryBTmnlEventTemplate" parameterType="hashmap" resultType="hashmap">
+  	SELECT EVENT_NO,EVENT_NAME FROM B_TMNL_EVENT_TEMPLATE WHERE PROTOCOL_CODE=#{PROTOCOL_CODE} AND TMNL_TYPE_CODE=#{TMNL_TYPE_CODE}
+  </select>
+</mapper> 

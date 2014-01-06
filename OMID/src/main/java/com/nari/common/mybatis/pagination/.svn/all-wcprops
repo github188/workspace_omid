@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/pagination
+END
+ResultSetInterceptor.java
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/pagination/ResultSetInterceptor.java
+END
+Page.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/pagination/Page.java
+END
+ReflectHelper.java
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/pagination/ReflectHelper.java
+END
+PageInterceptor.java
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/pagination/PageInterceptor.java
+END

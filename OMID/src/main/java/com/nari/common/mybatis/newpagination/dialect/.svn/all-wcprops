@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/newpagination/dialect
+END
+MySql5PageHelper.java
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/newpagination/dialect/MySql5PageHelper.java
+END
+OracleDialect.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/newpagination/dialect/OracleDialect.java
+END
+Dialect.java
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/newpagination/dialect/Dialect.java
+END
+MySql5Dialect.java
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/mybatis/newpagination/dialect/MySql5Dialect.java
+END

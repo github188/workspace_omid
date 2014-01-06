@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service
+END
+UsersExcService.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service/UsersExcService.java
+END
+EquipEvaluateService.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service/EquipEvaluateService.java
+END
+DisposeExcService.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service/DisposeExcService.java
+END
+MeasureExcService.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service/MeasureExcService.java
+END
+AlarmAnalyseService.java
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/service/AlarmAnalyseService.java
+END

@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action
+END
+LoginAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/LoginAction.java
+END
+MsgManageAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/MsgManageAction.java
+END
+DefinenotSendAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/DefinenotSendAction.java
+END
+PMenuAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/PMenuAction.java
+END
+TemplateManageAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/TemplateManageAction.java
+END
+MsgSubscribeManageAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/MsgSubscribeManageAction.java
+END
+TmnlParamSetAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/TmnlParamSetAction.java
+END
+RoleManageAction.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/action/RoleManageAction.java
+END

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.sysman.mapper.LoginMapper">
+	<cache />
+	<resultMap type="PSysUser" id="result_psysuser">
+		<result property="staffNo" column="STAFF_NO"/>
+		<result property="empNo" column="EMP_NO"/>
+		<result property="orgNo" column="ORG_NO"/>
+		<result property="deptNo" column="DEPT_NO"/>
+		<result property="name" column="NAME"/>
+		<result property="pwd" column="PWD"/>
+		<result property="accessLevel" column="ACCESS_LEVEL"/>
+		<result property="ip" column="IP"/>
+		<result property="mac" column="MAC"/>
+		<result property="curStatusCode" column="CUR_STATUS_CODE"/>
+		<result property="pwdRemindTime" column="PWD_REMIND_TIME"/>
+		<result property="lockTime" column="LOCK_TIME"/>
+		<result property="planUnlockTime" column="PLAN_UNLOCK_TIME"/>
+		<result property="unlockTime" column="UNLOCK_TIME"/>
+		<result property="lockIp" column="LOCK_IP"/>
+		<result property="autoUnlockFlag" column="AUTO_UNLOCK_FLAG"/>
+		<result property="lockReason" column="LOCK_REASON"/>
+		<result property="unlockEmpNo" column="UNLOCK_EMP_NO"/>
+	</resultMap>
+	
+	<select id="login" resultMap="result_psysuser">
+		SELECT * FROM SEA_P_SYS_USER T WHERE T.STAFF_NO = #{staffno}
+	</select>
+</mapper>

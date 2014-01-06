@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.intelDiag.mapper.ElecAbnormalMapper">
+
+  <cache />
+  <select id="getAreaCodeByOrgNo" parameterType="string" resultType="hashmap">
+  	            SELECT O.AREA_CODE,O.ORG_TYPE
+                FROM SEA_O_ORG O
+                WHERE O.ORG_NO=#{orgNo}
+  </select>
+  <select id="getOrgNo" parameterType="string" resultType="hashmap">
+  	  select org_no,org_name,org_type
+  from (
+  	select s.org_name, s.org_no,s.org_type 
+		  from sea_o_org s
+		  where org_no = #{orgNo}
+       union 
+     select s.org_name, s.org_no,s.org_type 
+      from sea_o_org s   
+      where p_org_no =#{orgNo}	
+       ) order by org_no	  
+  	<!--
+  	<if test="org_no!=null and org_no!=''">
+  		select s.org_name, s.org_no,s.org_type
+		  from sea_o_org s
+		 where   ORG_NO = #{org_no}
+  	</if>
+  <if test="org_no==null or org_no==''">
+  		select s.org_name, s.org_no,s.org_type
+		  from sea_o_org s
+		 where 7>=length(org_no)
+		 connect by prior org_no = p_org_no
+		 start with org_no =(select org_no from sea_o_org where p_org_no='0')
+		 order by s.org_no
+  </if>
+  -->
+  	<!--异常数-->
+  </select>
+  <select id="getEventLevelList" parameterType="string" resultType="hashmap">
+  	     SELECT v.event_level, v.event_level_name FROM vw_event_level v
+  </select >
+  
+   <select id="getConsTypeList" parameterType="string" resultType="hashmap">
+  	     SELECT to_number(T.CONS_TYPE) CONS_TYPE,T.CONS_TYPE_NAME FROM SEA_VW_CONS_TYPE T 
+  	     UNION  SELECT -1 AS CONS_TYPE,'--全部--' AS CONS_TYPE_NAME FROM  DUAL
+  </select >
+  
+  <select id="queryEleAbnormalTotalList" parameterType="string"  resultType="hashmap">
+  select aa.alarm_code, decode(aa.alarm_code,'','合计',b.event_name) event_name, aa.cnt
+ 	 from (SELECT a.alarm_code, count(*) cnt
+          FROM a_alarm_analyse a
+          <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+          		,SEA_R_TMNL_RUN    R
+          </if>
+          <if test="map.consType!=-1 and  (map.consType != null and map.consType !='')" >
+   			, SEA_C_CONS        C
+   		</if>
+          where a.org_no IN
+		        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+           and a.alarm_type = #{map.alarmType}
+           AND A.EVENT_LEVEL = #{map.eventLevel}
+           AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+           <if test="map.areaCode !=null   and map.areaCode!='' " >
+           	AND A.AREA_CODE=#{map.areaCode}
+           </if>
+           <!--
+        <if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+        <if test="map.consType!=-1 and  (map.consType != null and map.consType !='')" >
+        	AND A.CONS_NO=C.CONS_NO(+)
+   			AND C.CONS_TYPE = #{map.consType}
+   		</if>
+        <if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			 AND A.TERMINAL_ID = R.TERMINAL_ID(+) 
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+         group by cube(a.alarm_code)) aa , vw_sea_alarm_code b
+	 where aa.alarm_code = b.event_no(+)
+	 ORDER BY aa.alarm_code    
+  </select>
+    <select id="queryEleAlarmAnalyseInfo" useCache="false"  parameterType="string" resultType="hashmap">
+  			SELECT A.ALARM_ID,
+  			   A.ALARM_CODE,
+		       VW.EVENT_NAME,
+		       A.ORG_NO,
+		       O.ORG_NAME,
+		       PO.ORG_NAME P_ORG_NAME,
+		       A.CONS_NO,
+		       C.CONS_NAME,
+		       C.CONS_TYPE,
+		       C.RUN_CAP,
+		       TT.CONS_TYPE_NAME,
+		       DECODE(A.EVENT_LEVEL,'01','严重','02','重要','03','较重要','04','一般','') EVENT_LEVEL,
+		       DECODE(A.ALARM_SRC,'1','主站分析','2','终端上送事件','3','人工录入','') ALARM_SRC,
+		       TO_CHAR(A.FIRST_ALARM_DATE,'yyyy-mm-dd') FIRST_ALARM_DATE,
+		       TO_CHAR(A.ALARM_DATE,'yyyy-mm-dd') ALARM_DATE,
+		       A.ALARM_CNT,
+		       TO_CHAR(A.FIRST_RESUME_DATE,'yyyy-mm-dd') FIRST_RESUME_DATE,
+		       TO_CHAR(A.RESUME_DATE,'yyyy-mm-dd') RESUME_DATE,
+		       A.SAVE_ALARM_DATE,
+		       A.RESUME_DAY_CNT,
+		       R.TERMINAL_ADDR,
+		       R.TERMINAL_ID,
+		       A.METER_ID,
+		       D.ASSET_NO,
+		       A.REMARK,
+		       A.TYPE_CODE,
+		       A.AREA_CODE
+		  FROM A_ALARM_ANALYSE   A,
+		       VW_SEA_ALARM_CODE VW,
+		       SEA_C_CONS        C,
+		       SEA_VW_CONS_TYPE  TT,
+		       SEA_R_TMNL_RUN    R,
+		       SEA_O_ORG         O,
+		       SEA_O_ORG         PO,
+		       SEA_D_METER       D
+		 WHERE A.ALARM_TYPE = #{map.alarmType}
+		   AND A.ALARM_CODE = VW.EVENT_NO(+)
+		   AND A.CONS_NO = C.CONS_NO(+)
+		   AND C.CONS_TYPE = TT.CONS_TYPE(+)
+		   AND A.TERMINAL_ID = R.TERMINAL_ID(+)
+		   AND A.ORG_NO = O.ORG_NO(+)
+		   AND PO.ORG_NO = O.P_ORG_NO
+		   AND A.METER_ID = D.METER_ID(+) 
+		   AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+		<if test="map.alarmCode != null and map.alarmCode !='' ">
+   			AND A.ALARM_CODE= #{map.alarmCode}
+   		</if>   
+        <if test="map.orgNo != null and map.orgNo !='' ">
+   			AND A.ORG_NO IN
+		        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+   		</if>
+   		 <if test="map.areaCode !=null   and map.areaCode!='' " >
+           	AND A.AREA_CODE=#{map.areaCode}
+           	AND C.AREA_CODE=#{map.areaCode}
+           </if>
+   		<if test="map.eventLevel != null and map.eventLevel !='' ">
+   			AND A.EVENT_LEVEL = #{map.eventLevel}
+   		</if>
+   		<if test="map.consType!=-1 and  (map.consType != null and map.consType !='')" >
+   			AND C.CONS_TYPE = #{map.consType}
+   		</if>
+   		
+   		<!--
+   		<if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+   		<if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+  
+  </select >
+  <select id="queryFileTotalList" resultType="hashmap">
+SELECT A.CONS_NO,
+       A.CONS_NAME,
+       A.VOLT_CODE VOLT,
+       A.ELEC_ADDR,
+       A.RUN_CAP,
+       A.CONTRACT_CAP,
+       A.CONS_SORT_NAME,
+       A.TRADE_NAME,
+       A.ELEC_TYPE,
+       A1.TMNL_ASSET_NO,
+       A1.TERMINAL_ADDR,
+       A1.STATUS_NAME,
+       A1.PROTOCOL_NAME,
+       A1.TMNL_TYPE,
+       A1.COLL_MODE_NAME,
+       A1.FACTORY_NAME,
+       A1.CP_NO,
+       A1.CP_ADDR,
+       A1.CP_TYPE,
+       A2.ASSET_NO,
+       A2.T_FACTOR,
+       A2.COMM_MODE,
+       A2.MP_ID,
+       A2.MP_ATTR_NAME,
+       A2.USAGE_TYPE_NAME,
+       A2.VOLT_CODE,
+       A2.MEAS_MODE,
+       A2.CT,
+       A2.PT,
+       A2.MEAS_NO,
+       A2.WIRING_MODE,
+       A2.WIRING_MODE_NAME
+  FROM (SELECT C.CONS_NO,
+               C.CONS_NAME,
+               C.VOLT_CODE,
+               VVC.VOLT,
+               C.ELEC_ADDR,
+               C.RUN_CAP,
+               C.CONTRACT_CAP,
+               VS.CONS_SORT_NAME,
+               C.TRADE_CODE,
+               T.TRADE_NAME,
+               C.ELEC_TYPE_CODE,
+               ET.ELEC_TYPE
+          FROM SEA_C_CONS            C,
+               SEA_VW_TRADE          T,
+               SEA_VW_ELEC_TYPE_CODE ET,
+               SEA_VW_VOLT_CODE      VVC,
+               SEA_VW_CONS_SORT_CODE VS
+         WHERE C.TRADE_CODE = T.TRADE_NO(+)
+           AND VVC.VOLT_CODE (+)= C.VOLT_CODE
+           AND C.ELEC_TYPE_CODE = ET.ELEC_TYPE_CODE(+)
+           AND C.CONS_SORT_CODE = VS.CONS_SORT_CODE
+           AND C.CONS_NO = #{map.consNo}) A,
+       (SELECT R.TMNL_ASSET_NO,
+               R.TERMINAL_ADDR,
+               R.STATUS_CODE,
+               S.STATUS_NAME,
+               R.PROTOCOL_CODE,
+               P.PROTOCOL_NAME,
+               R.TERMINAL_TYPE_CODE,
+               T.TMNL_TYPE,
+               R.COLL_MODE,
+               C.COLL_MODE COLL_MODE_NAME,
+               R.FACTORY_CODE,
+               F.FACTORY_NAME,
+               RCP.CP_NO,
+               RCP.CP_ADDR,
+               RCPT.CP_TYPE
+          FROM SEA_R_TMNL_RUN         R,
+          	   SEA_R_CP               RCP,
+          	   SEA.VW_CP_TYPE_CODE    RCPT,
+               SEA_VW_TMNL_STATUS_RUN S,
+               VW_PROTOCOL_CODE       P,
+               SEA_VW_TMNL_TYPE_CODE  T,
+               VW_COLL_MODE           C,
+               SEA_VW_TMNL_FACTORY    F
+         WHERE R.STATUS_CODE = S.STATUS_CODE(+)
+           AND R.CP_NO = RCP.CP_NO(+)
+           AND RCP.CP_TYPE_CODE=RCPT.CP_TYPE_CODE(+)
+           AND R.PROTOCOL_CODE = P.PROTOCOL_CODE(+)
+           AND R.TERMINAL_TYPE_CODE = T.TMNL_TYPE_CODE(+)
+           AND R.COLL_MODE = C.COLL_MODE_CODE(+)
+           AND R.FACTORY_CODE = F.FACTORY_CODE(+)
+           AND R.TERMINAL_ADDR = #{map.termimalAddr}) A1,
+       (SELECT C.ASSET_NO,
+               C.T_FACTOR,
+               EDM.CT,
+               EDM.PT,
+               V.PROTOCOL_NAME COMM_MODE,
+               D.MP_ID,
+               D.MP_ATTR_NAME,
+               D.USAGE_TYPE_NAME,
+               D.VOLT_CODE,
+               D.MEAS_MODE,
+               D.MEAS_NO,
+               D.WIRING_MODE,
+               D.WIRING_MODE_NAME
+          FROM SEA_C_METER C,SEA_VW_MET_COMM_PROTOCOL V,(SELECT DISTINCT METER_ID,CT,PT FROM SEA_E_DATA_MP E WHERE E.METER_ID=#{map.meterId}) EDM,
+               (SELECT CM.MP_ID,
+                       MA.MP_ATTR_NAME,
+                       UT.USAGE_TYPE_NAME,
+                       CM.VOLT_CODE,
+                       MM.MEAS_NO,
+                       MM.MEAS_MODE,
+                       WM.WIRING_MODE,
+                       WM.WIRING_MODE_NAME
+                  FROM SEA_C_MP             CM,
+                       SEA_VW_MP_ATTR       MA,
+                       SEA_VW_MP_USAGE_TYPE UT,
+                       SEA_VW_MEAS_MODE     MM,
+                       SEA_VW_WIRING_MODE WM
+                 WHERE CM.MP_ATTR_CODE = MA.MP_ATTR_CODE(+)
+                   AND CM.USAGE_TYPE_CODE = UT.USAGE_TYPE_CODE(+)
+                   AND CM.WIRING_MODE=WM.WIRING_MODE(+)
+                   AND CM.MEAS_MODE = MM.MEAS_NO(+)) D
+         WHERE C.MP_ID = D.MP_ID(+)
+           AND C.COMM_NO=V.PROTOCOL_CODE(+)
+           AND C.METER_ID=EDM.METER_ID(+)
+           AND C.METER_ID = #{map.meterId}) A2
+  </select>
+  <select id="queryAlarmAnalyseHisInfo" useCache="false" parameterType="string" resultType="hashmap">
+  			SELECT 
+	  			A.ALARM_ID,
+	  			A.ALARM_CODE,
+			    A.EVENT_LEVEL,	
+			    VL.EVENT_LEVEL_NAME,
+			    VW.EVENT_NAME,
+			    A.CONS_NO,	
+			    A.ALARM_SRC,
+			    TO_CHAR(A.FIRST_ALARM_DATE,'yyyy-mm-dd') FIRST_ALARM_DATE,
+			    TO_CHAR(A.ALARM_DATE,'yyyy-mm-dd') ALARM_DATE,
+			    A.ALARM_CNT,
+			    TO_CHAR(A.FIRST_RESUME_DATE,'yyyy-mm-dd') FIRST_RESUME_DATE,
+			    TO_CHAR(A.RESUME_DATE,'yyyy-mm-dd') RESUME_DATE,
+			    A.RESUME_DAY_CNT,
+			    A.METER_ASSET_NO,
+			    A.ALARM_TYPE,
+		        VET.EXCEPT_TYPE_NAME,
+		        VFFC.FLOW_FLAG_NAME,
+		        VFSC.FLOW_STATUS_NAME,
+		        VFSD.FLOW_STATUS_DETAIL_NAME,
+		        O.ORG_NAME SEND_ORG_NAME,
+		        A.SEND_STAFF_NO,
+		        A.SEND_DATE,
+		        O1.ORG_NAME HANDLE_ORG_NAME,
+		        A.HANDLE_STAFF_NO,
+		        A.HANDLE_DATE
+		  FROM A_ALARM_ANALYSE_HIS   A, VW_SEA_ALARM_CODE VW,
+		       VW_EVENT_LEVEL VL,
+               VW_EXCEPT_TYPE             VET,
+               vw_flow_flag_code          VFFC,
+     		   vw_flow_status_code        VFSC,
+      		   vw_flow_status_detail_code VFSD,
+               SEA_O_ORG                  O,
+               SEA_O_ORG                  O1
+		 WHERE A.ALARM_CODE = VW.EVENT_NO(+)	
+		       AND A.EVENT_LEVEL = VL.EVENT_LEVEL(+)
+  			   AND A.ALARM_TYPE = VET.except_type(+)
+   			   AND A.FLOW_FLAG = VFFC.flow_flag_code(+)
+			   AND A.FLOW_STATUS_CODE = VFSC.flow_status_code(+)
+			   AND A.FLOW_STATUS_DETAIL = VFSD.flow_status_detail_code(+)
+			   AND A.SEND_ORG_NO = O.ORG_NO(+)
+			   AND A.HANDLE_ORG_NO = O1.ORG_NO(+)
+		<!--   AND A.ALARM_CODE= #{map.alarmCode}  
+		AND A.ALARM_TYPE =#{map.alarmType}
+		-->
+   			AND A.CONS_NO LIKE '%${ map.consNo}%'    			
+   			<if test="map.areaCode !=null   and map.areaCode!='' " >
+           	AND A.AREA_CODE=#{map.areaCode}           
+           </if>
+   		 <![CDATA[ AND A.ALARM_DATE >=to_date(SUBSTR(#{map.querySdate},0,7),'yyyy-mm')
+ 		  	AND A.ALARM_DATE <= to_date(SUBSTR(#{map.queryEdate},0,7),'yyyy-mm')]]>
+  
+   </select >
+  <select id="queryMeterDemandInfo"  parameterType="string"  resultType="hashmap">
+		  SELECT TO_CHAR(E.DATA_DATE,'yyyy-mm-dd') DATA_DATE,E.CT * E.PT  AS FACTOR,
+		      E.PAP_DEMAND * E.CT * E.PT AS PAP_DEMAND
+		  FROM SEA_E_MP_DAY_DEMAND E
+		  WHERE E.DATA_DATE BETWEEN TO_DATE(#{map.dataTime}, 'yyyy-mm-dd') - 6 AND
+		       TO_DATE(#{map.dataTime}, 'yyyy-mm-dd')
+		   AND E.ID = (SELECT ID  FROM(SELECT EE.ID
+		                 FROM SEA_E_DATA_MP EE
+		                WHERE EE.METER_ID = #{map.meterId}
+		                  AND EE.DATA_SRC IN ('1','3')
+		                  AND EE.IS_VALID = '1'
+		                   ORDER BY EE.DATA_SRC)
+		                  WHERE  ROWNUM = 1)
+		    ORDER BY E.DATA_DATE DESC              
+  </select >
+   <select id="queryMeterFactorInfo"  parameterType="string"  resultType="hashmap">
+			SELECT TO_CHAR(A.STAT_DATE,'YYYY-MM-DD') STAT_DATE,A.AVG_F
+			 FROM SEA.A_CONS_STAT_D A
+			WHERE A.ASSET_NO=#{map.assetNo}
+			AND STAT_DATE BETWEEN TO_DATE(#{map.dataTime}, 'yyyy-mm-dd') - 9 AND
+		       TO_DATE(#{map.dataTime}, 'yyyy-mm-dd')
+		    ORDER BY A.STAT_DATE DESC              
+  </select >  
+   <select id="queryMeterEvent"  useCache="false" parameterType="string"  resultType="hashmap">  
+	  	SELECT A.ALARM_ID,
+		       A.ALARM_TYPE_CODE ,		           
+		       A.METER_ID,
+		       A.EVENT_NO,		       
+		       A.ID,
+		       A.EVENT_TYPE_CODE,
+		       A.TERMINAL_ID,
+		       A.EVENT_TIME,
+		       A.REC_TIME
+		       <if test="map.eventTypeCode =='02'" >
+		       ,
+		       D.ASSET_NO,
+		       D.TMNL_ASSET_NO,
+		       VET.PROT_ITEM_NAME EVENT_NAME
+		       </if>
+		         <if test="map.eventTypeCode =='01'" >
+		         	,VET.EVENT_NAME
+		         </if>	
+		  FROM A_ALARM_METEVENT_RELA A
+		    <if test="map.eventTypeCode =='02'" >
+		     , B_METER_PROTOCOL    VET , SEA_C_METER D
+		     	 WHERE  A.EVENT_NO=VET.MET_PROTOCOL_NO	
+		   </if>
+		    <if test="map.eventTypeCode =='01'" >
+		     , b_tmnl_event_template    VET 
+		     where VET.EVENT_NO=A.EVENT_NO
+		   </if>
+		  	  
+		   AND A.EVENT_TYPE_CODE = #{map.eventTypeCode}
+		    <if test="map.eventTypeCode =='01'" >
+		   AND  A.TERMINAL_ID=#{map.terminalId}
+		    </if>
+		   <if test="map.eventTypeCode =='02'" >
+		 	 AND A.METER_ID = D.METER_ID(+)	
+		     AND A.METER_ID= #{map.meterId}
+		   </if>
+		  <!-- AND A.ALARM_ID = #{map.alarmId}
+		   AND A.ALARM_TYPE_CODE='02'-->
+  </select >
+  <select id="queryMeterEventDetail"  parameterType="string"  resultType="hashmap">
+  		<if test="map.typeCode ==2 " >
+			SELECT V.ID,V.ITEM_NO,ITEM.ITEM_NAME,V.EVENT_DATA FROM 
+			(SELECT DISTINCT B2.DATAN,B2.ITEM_NAME 
+			FROM B_TMNL_EVENT_TEMPLATE B1,SEA_B_EVENT_DATA_DEF B2,(SELECT ALARM_CODE FROM A_ALARM_ANALYSE  WHERE ALARM_ID=#{map.alarmId}) B3
+			WHERE B1.COLL_EVENT_CODE=B2.EVENT_NO
+			AND B3.ALARM_CODE= B1.ALARM_CODE
+			AND B1.EVENT_NO= #{map.eventNo}) ITEM,
+			(SELECT ID, ITEM_NO, EVENT_DATA 
+			  FROM A_ALARM_EVENT_DETAIL
+			 WHERE ALARM_ID =  #{map.alarmId}) V
+			WHERE SUBSTR(V.ITEM_NO,5)=ITEM.DATAN
+  		</if>
+  		<if test="map.typeCode ==1 " >
+  			SELECT AA.ID,AA.ITEM_NO,PI.EVENT_DESC ITEM_NAME,AA.EVENT_DATA 
+   			FROM  A_ALARM_EVENT_DETAIL  AA,B_METER_PROTOCOL_ITEM PI
+   			WHERE AA.ITEM_NO=PI.ITEM_SN
+   			AND AA.ALARM_ID= #{map.alarmId}
+   			AND PI.MET_PROTOCOL_NO=#{map.eventNo}
+  		</if>
+  </select >
+
+    <select id= "queryEleMeterEventRec" useCache="false" parameterType="string"  resultType="hashmap">
+  	   SELECT A.MET_EVENT_ID,
+          A.METER_ID,
+          A.EVENT_NO,
+          A.EVENT_TIME,
+          A.REC_TIME,
+          VW.PROT_ITEM_NAME  EVENT_NAME,
+          E.ASSET_NO
+     FROM E_MET_EVENT A, B_METER_PROTOCOL VW, (SELECT id,asset_no FROM sea_e_data_mp  where meter_id= #{map.meterId} ) E
+    WHERE A.EVENT_NO = VW.MET_PROTOCOL_NO(+)
+      AND A.METER_ID = E.ID(+)
+      AND A.CONS_NO = #{map.consNo}
+      AND TRUNC(A.EVENT_TIME) BETWEEN TO_DATE(#{map.startDate}, 'yyyy-mm-dd') AND
+          TO_DATE(#{map.endDate}, 'yyyy-mm-dd')
+  </select >
+  <select id= "queryMeterEventRecDetail"  parameterType="string"  resultType="hashmap">
+  	SELECT E.ITEM_NO, E.EVENT_DATA
+		  FROM E_MET_EVENT_DETAIL E
+		 WHERE E.MET_EVENT_ID = #{map.id}
+  </select >
+  
+  <select id="queryEleTmnlEventRec" useCache="false" parameterType="string"  resultType="hashmap"> 
+				SELECT A.EVENT_NO,
+				       V.EVENT_NAME,
+				       B.TERMINAL_ADDR,
+				       to_char(A.EVENT_TIME,'yyyy-mm-dd hh24:mi:ss') EVENT_TIME,
+				       DECODE(A.FROM_TYPE,1,'测量点号',2,'总加组号',3,'电能量差动组号',4,'直流模拟端口号') EVENT_SRC,
+				       A.FROM_NO,
+				       DECODE(V.EVENT_LEVEL,0,'一般',1,'重要','其他')  EVENT_LEVEL,
+					   A.DATA1,
+					   A.DATA2,
+					   A.DATA3,
+					   A.DATA4,
+					   A.DATA5,
+					   A.DATA6
+				  FROM (SELECT TE.ID, TE.EVENT_NO, TE.EVENT_TIME, TE.FROM_NO, TE.FROM_TYPE,
+                          TE.DATA1,  TE.DATA2, TE.DATA3,TE.DATA4,TE.DATA5,TE.DATA6
+				          FROM SEA_E_TMNL_EVENT TE
+				         WHERE TE.AREA_CODE =  #{map.areaCode}
+				           AND TRUNC(TE.EVENT_TIME) BETWEEN
+				               TO_DATE( #{map.startDate}, 'YYYY-MM-DD') AND
+				               TO_DATE( #{map.endDate}, 'YYYY-MM-DD')) A,
+				       (SELECT E.ID, E.CONS_NO, E.TERMINAL_ADDR
+				          FROM SEA_E_DATA_MP E
+				         WHERE E.AREA_CODE = #{map.areaCode}
+				           AND E.TMNL_ASSET_NO = #{map.terminalId}) B,
+				       B_TMNL_EVENT_TEMPLATE V
+				 WHERE A.ID = B.ID
+				   AND V.COLL_EVENT_CODE(+) = A.EVENT_NO  	
+  	
+  </select >
+  
+   <select id="queryBLPhaseInfo"  parameterType="string"  resultType="hashmap">
+  		select DATA_TIME, UA,
+		       UB,
+		       UC,
+		       IA,
+		       IB,
+		       IC,
+		       P,
+		       Q,
+		       VIEWPOWER,
+		       FORWARDPOWER,
+		       REVERSEPOWER,
+		       F,
+		       PAP_E,
+		       RAP_E,
+		       FACTOR,		      
+		       meas_mode,
+		       meas_mode_name
+  		from (SELECT TO_CHAR(C.DATA_TIME, 'yyyy-mm-dd hh24:mi:ss') DATA_TIME,
+		       C.UA,
+		       C.UB,
+		       C.UC,
+		       C.IA,
+		       C.IB,
+		       C.IC,
+		       C.P,
+		       C.Q,
+		       round(SQRT(C.P * C.P + C.Q * C.Q) * C.CT * C.PT,2) VIEWPOWER, ---视在功率
+		       C.P * C.CT * C.PT FORWARDPOWER, ---正向有功总
+		       C.Q * C.CT * C.PT REVERSEPOWER, ---反向有功总
+		       C.F, ---功率因数
+		       C.PAP_E,
+		       C.RAP_E,
+		       C.CT * C.PT FACTOR
+		  FROM SEA_E_MP_CURVE
+		  <if test="map.datePartition != null and map.datePartition !='' ">
+          		${map.datePartition}
+          </if> 
+          C
+		 WHERE TRUNC(C.DATA_TIME) = TO_DATE(#{map.dataTime},'yyyy-mm-dd')
+		   AND C.ID =(SELECT ID  FROM(SELECT EE.ID
+		                 FROM SEA_E_DATA_MP EE
+		                WHERE EE.METER_ID = #{map.meterId}
+		                  AND EE.DATA_SRC IN ('1','3')
+		                  AND EE.IS_VALID = '1'
+		                   ORDER BY EE.DATA_SRC)
+		                  WHERE  ROWNUM = 1)) a  join 
+		           (select s1.meas_mode,s2.meas_mode   meas_mode_name from (select   meas_mode
+ from (
+SELECT distinct meas_mode
+FROM sea_c_mp c1,Sea_c_Meter_Mp_Rela c2,sea_d_meter c3
+where c1.mp_id=c2.mp_id
+and c3.meter_id=c2.meter_id
+and c3.meter_id=#{map.meterId}
+order by meas_mode)
+where rownum=1)s1,sea_vw_meas_mode s2
+where s1.meas_mode=s2.meas_no(+)
+)     b
+on 1=1       
+  </select >
+    <select id="queryTablePartiTion"  parameterType="string"  resultType="string">
+		  SELECT GET_PARTITION2(#{map.tableName}, TO_DATE(#{map.queryDate}, #{map.dateFormat}))
+		  FROM DUAL
+  </select >
+</mapper>

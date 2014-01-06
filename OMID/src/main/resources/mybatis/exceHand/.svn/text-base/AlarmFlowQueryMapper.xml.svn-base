@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.exceHand.mapper.AlarmFlowQueryMapper">
+
+  <cache />
+  <!--异常流程查询 -->
+  <select id="getAlarmFlowList" useCache="false" resultType="hashmap">
+	<choose>
+		<when test="map.FLOW_STATUS_CODE=='0'">
+	SELECT SB.*, E.MANAGE_TYPE_NAME
+       FROM (SELECT A.*,
+                       C.FLOW_STATUS_NAME,
+                       D.TERMINAL_ADDR,
+                       (SELECT ORG_NAME
+                          FROM SEA_O_ORG E
+                         WHERE E.ORG_NO = A.SEND_ORG_NO) SEND_ORG_NAME,
+                       (SELECT ORG_NAME
+                          FROM SEA_O_ORG
+                         WHERE ORG_NO = A.CLOSE_ORG_NO) CLOSE_ORG_NAME,
+                       (SELECT NAME
+                          FROM SEA_P_SYS_USER
+                         WHERE STAFF_NO = A.SEND_SFAFF_NO) SEND_STAFF_NAME,
+                       (SELECT NAME
+                          FROM SEA_P_SYS_USER
+                         WHERE STAFF_NO = A.CLOSE_SFAFF_NO) CLOSE_STAFF_NAME,
+                       F.CREATE_TYPE_NAME,
+                       G.FLOW_STATUS_DETAIL_NAME,
+                       I.FLOW_FLAG_NAME,
+                       J.EXCEPT_SRC_NAME
+                  FROM (SELECT TMP.ALARM_SRC,
+                               TMP.TASK_NO,
+                               TMP.TASK_ID,
+                               TMP.CREATE_TYPE,
+                               TMP.SEND_ORG_NO,
+                               TMP.SEND_SFAFF_NO,
+                               TO_CHAR(TMP.START_TIME, 'YYYY-MM-DD') START_TIME,
+                               TMP.CLOSE_ORG_NO,
+                               TMP.CLOSE_SFAFF_NO,
+                               TO_CHAR(TMP.CLOSE_TIME, 'YYYY-MM-DD') CLOSE_TIME,
+                               TMP.FLOW_STATUS_CODE,
+                               TMP.FLOW_STATUS_DETAIL,
+                               TMP.FLOW_FLAG,
+                               TMP.APP_NO,
+                               TMP.MANAGE_TYPE
+                          FROM F_TASK_FLOW TMP
+                         WHERE 1 = 1
+   <if test="map.ORG_NO!=null and map.ORG_NO!=''">
+  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+		  FROM SEA_O_ORG S
+		 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		 START WITH ORG_NO = #{map.ORG_NO}
+		 )ORG WHERE TMP.SEND_ORG_NO=ORG.ORG_NO)
+   </if>
+   <if test="map.START_DATE!=null and map.START_DATE!=''">
+		AND TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{map.START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	</if>
+	<if test="map.END_DATE!=null and map.END_DATE!=''">
+  		AND TO_CHAR(TO_DATE(#{map.END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')
+	</if>
+	<if test="map.FLOW_STATUS_CODE!=null and map.FLOW_STATUS_CODE!=''">
+  		AND TMP.FLOW_FLAG=#{map.FLOW_STATUS_CODE}
+	</if>
+	<if test="map.CREATE_TYPE!=null and map.CREATE_TYPE!=''">
+		AND TMP.CREATE_TYPE=#{map.CREATE_TYPE}
+	</if>
+		) A,
+                           F_TASK_ALARM_RELA B,
+                           VW_FLOW_STATUS_CODE C,
+                           SEA_R_TMNL_RUN D,
+                           VW_CREATE_TYPE_CODE F,
+                           VW_FLOW_STATUS_DETAIL_CODE G,
+                           VW_FLOW_FLAG_CODE I,
+                           VW_EXCEPT_SRC J
+                     WHERE A.TASK_ID = B.TASK_ID(+)
+                       AND A.FLOW_STATUS_CODE = C.FLOW_STATUS_CODE(+)
+                       AND B.TERMINAL_ID = D.TERMINAL_ID(+)
+                       AND A.CREATE_TYPE = F.CREATE_TYPE_CODE(+)
+                       AND A.FLOW_STATUS_DETAIL =
+                           G.FLOW_STATUS_DETAIL_CODE(+)
+                       AND A.FLOW_FLAG = I.FLOW_FLAG_CODE(+)
+                       AND A.ALARM_SRC = J.EXCEPT_SRC_CODE(+))SB, VW_LOCAL_MANAGE_TYPE_CODE E
+          WHERE SB.MANAGE_TYPE = E.MANAGE_TYPE_CODE(+)
+            AND SB.FLOW_FLAG = #{map.FLOW_STATUS_CODE}
+   </when>
+   <when test="map.FLOW_STATUS_CODE=='1'">
+	  SELECT SE.*, H.MANAGE_TYPE_NAME
+           FROM (SELECT A.*,
+                           C.FLOW_STATUS_NAME,
+                           D.TERMINAL_ADDR,
+                           (SELECT ORG_NAME
+                              FROM SEA_O_ORG E
+                             WHERE E.ORG_NO = A.SEND_ORG_NO) SEND_ORG_NAME,
+                           (SELECT ORG_NAME
+                              FROM SEA_O_ORG
+                             WHERE ORG_NO = A.CLOSE_ORG_NO) CLOSE_ORG_NAME,
+                           (SELECT NAME
+                              FROM SEA_P_SYS_USER
+                             WHERE STAFF_NO = A.SEND_SFAFF_NO) SEND_STAFF_NAME,
+                           (SELECT NAME
+                              FROM SEA_P_SYS_USER
+                             WHERE STAFF_NO = A.CLOSE_SFAFF_NO) CLOSE_STAFF_NAME,
+                           F.CREATE_TYPE_NAME,
+                           G.FLOW_STATUS_DETAIL_NAME,
+                           I.FLOW_FLAG_NAME,
+                           J.EXCEPT_SRC_NAME
+                      FROM (SELECT TMP.ALARM_SRC,
+                                   TMP.TASK_NO,
+                                   TMP.TASK_ID,
+                                   TMP.CREATE_TYPE,
+                                   TMP.SEND_ORG_NO,
+                                   TMP.SEND_SFAFF_NO,
+                                   TO_CHAR(TMP.START_TIME, 'YYYY-MM-DD') START_TIME,
+                                   TMP.CLOSE_ORG_NO,
+                                   TMP.CLOSE_SFAFF_NO,
+                                   TO_CHAR(TMP.CLOSE_TIME, 'YYYY-MM-DD') CLOSE_TIME,
+                                   TMP.FLOW_STATUS_CODE,
+                                   TMP.FLOW_STATUS_DETAIL,
+                                   TMP.FLOW_FLAG,
+                                   TMP.APP_NO,
+                                   TMP.MANAGE_TYPE
+                              FROM F_TASK_FLOW TMP
+                     WHERE 1 = 1
+   <if test="map.ORG_NO!=NULL and map.ORG_NO!=''">
+  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+		  FROM SEA_O_ORG S
+		 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		 START WITH ORG_NO = #{map.ORG_NO}
+		 )ORG WHERE TMP.SEND_ORG_NO=ORG.ORG_NO)
+   </if>
+   <if test="map.START_DATE!=null and map.START_DATE!=''">
+		AND TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{map.START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	</if>
+	<if test="map.END_DATE!=null and map.END_DATE!=''">
+  		AND TO_CHAR(TO_DATE(#{map.END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')
+	</if>
+	<if test="map.FLOW_STATUS_CODE!=null and map.FLOW_STATUS_CODE!=''">
+  		AND TMP.FLOW_FLAG=#{map.FLOW_STATUS_CODE}
+	</if>
+	<if test="map.CREATE_TYPE!=null and map.CREATE_TYPE!=''">
+		AND TMP.CREATE_TYPE=#{map.CREATE_TYPE}
+	</if>
+	) A,
+                           F_TASK_ALARM_RELA B,
+                           VW_FLOW_STATUS_CODE C,
+                           SEA_R_TMNL_RUN D,
+                           VW_CREATE_TYPE_CODE F,
+                           VW_FLOW_STATUS_DETAIL_CODE G,
+                           VW_FLOW_FLAG_CODE I,
+                           VW_EXCEPT_SRC J
+                     WHERE A.TASK_ID = B.TASK_ID(+)
+                       AND A.FLOW_STATUS_CODE = C.FLOW_STATUS_CODE(+)
+                       AND B.TERMINAL_ID = D.TERMINAL_ID(+)
+                       AND A.CREATE_TYPE = F.CREATE_TYPE_CODE(+)
+                       AND A.FLOW_STATUS_DETAIL =
+                           G.FLOW_STATUS_DETAIL_CODE(+)
+                       AND A.FLOW_FLAG = I.FLOW_FLAG_CODE(+)
+                       AND A.ALARM_SRC = J.EXCEPT_SRC_CODE(+))SE, VW_CIS_MANAGE_TYPE_CODE H
+          WHERE SE.MANAGE_TYPE = H.MANAGE_TYPE_CODE(+)
+        AND SE.FLOW_FLAG = #{map.FLOW_STATUS_CODE}
+   </when>
+		<otherwise>
+	SELECT SB.*, E.MANAGE_TYPE_NAME
+       FROM (SELECT A.*,
+                       C.FLOW_STATUS_NAME,
+                       D.TERMINAL_ADDR,
+                       (SELECT ORG_NAME
+                          FROM SEA_O_ORG E
+                         WHERE E.ORG_NO = A.SEND_ORG_NO) SEND_ORG_NAME,
+                       (SELECT ORG_NAME
+                          FROM SEA_O_ORG
+                         WHERE ORG_NO = A.CLOSE_ORG_NO) CLOSE_ORG_NAME,
+                       (SELECT NAME
+                          FROM SEA_P_SYS_USER
+                         WHERE STAFF_NO = A.SEND_SFAFF_NO) SEND_STAFF_NAME,
+                       (SELECT NAME
+                          FROM SEA_P_SYS_USER
+                         WHERE STAFF_NO = A.CLOSE_SFAFF_NO) CLOSE_STAFF_NAME,
+                       F.CREATE_TYPE_NAME,
+                       G.FLOW_STATUS_DETAIL_NAME,
+                       I.FLOW_FLAG_NAME,
+                       J.EXCEPT_SRC_NAME
+                  FROM (SELECT TMP.ALARM_SRC,
+                               TMP.TASK_NO,
+                               TMP.TASK_ID,
+                               TMP.CREATE_TYPE,
+                               TMP.SEND_ORG_NO,
+                               TMP.SEND_SFAFF_NO,
+                               TO_CHAR(TMP.START_TIME, 'YYYY-MM-DD') START_TIME,
+                               TMP.CLOSE_ORG_NO,
+                               TMP.CLOSE_SFAFF_NO,
+                               TO_CHAR(TMP.CLOSE_TIME, 'YYYY-MM-DD') CLOSE_TIME,
+                               TMP.FLOW_STATUS_CODE,
+                               TMP.FLOW_STATUS_DETAIL,
+                               TMP.FLOW_FLAG,
+                               TMP.APP_NO,
+                               TMP.MANAGE_TYPE
+                          FROM F_TASK_FLOW TMP
+                         WHERE 1 = 1
+   <if test="map.ORG_NO!=null and map.ORG_NO!=''">
+  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+		  FROM SEA_O_ORG S
+		 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		 START WITH ORG_NO = #{map.ORG_NO}
+		 )ORG WHERE TMP.SEND_ORG_NO=ORG.ORG_NO)
+   </if>
+   <if test="map.START_DATE!=null and map.START_DATE!=''">
+		AND TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{map.START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	</if>
+	<if test="map.END_DATE!=null and map.END_DATE!=''">
+  		AND TO_CHAR(TO_DATE(#{map.END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')
+	</if>
+	<if test="map.FLOW_STATUS_CODE!=null and map.FLOW_STATUS_CODE!=''">
+  		AND TMP.FLOW_FLAG=#{map.FLOW_STATUS_CODE}
+	</if>
+	<if test="map.CREATE_TYPE!=null and map.CREATE_TYPE!=''">
+		AND TMP.CREATE_TYPE=#{map.CREATE_TYPE}
+	</if>
+		) A,
+                           F_TASK_ALARM_RELA B,
+                           VW_FLOW_STATUS_CODE C,
+                           SEA_R_TMNL_RUN D,
+                           VW_CREATE_TYPE_CODE F,
+                           VW_FLOW_STATUS_DETAIL_CODE G,
+                           VW_FLOW_FLAG_CODE I,
+                           VW_EXCEPT_SRC J
+                     WHERE A.TASK_ID = B.TASK_ID(+)
+                       AND A.FLOW_STATUS_CODE = C.FLOW_STATUS_CODE(+)
+                       AND B.TERMINAL_ID = D.TERMINAL_ID(+)
+                       AND A.CREATE_TYPE = F.CREATE_TYPE_CODE(+)
+                       AND A.FLOW_STATUS_DETAIL =
+                           G.FLOW_STATUS_DETAIL_CODE(+)
+                       AND A.FLOW_FLAG = I.FLOW_FLAG_CODE(+)
+                       AND A.ALARM_SRC = J.EXCEPT_SRC_CODE(+))SB, VW_LOCAL_MANAGE_TYPE_CODE E
+          WHERE SB.MANAGE_TYPE = E.MANAGE_TYPE_CODE(+)
+            AND SB.FLOW_FLAG = '0'
+         UNION ALL
+         
+         SELECT SE.*, H.MANAGE_TYPE_NAME
+           FROM (SELECT A.*,
+                           C.FLOW_STATUS_NAME,
+                           D.TERMINAL_ADDR,
+                           (SELECT ORG_NAME
+                              FROM SEA_O_ORG E
+                             WHERE E.ORG_NO = A.SEND_ORG_NO) SEND_ORG_NAME,
+                           (SELECT ORG_NAME
+                              FROM SEA_O_ORG
+                             WHERE ORG_NO = A.CLOSE_ORG_NO) CLOSE_ORG_NAME,
+                           (SELECT NAME
+                              FROM SEA_P_SYS_USER
+                             WHERE STAFF_NO = A.SEND_SFAFF_NO) SEND_STAFF_NAME,
+                           (SELECT NAME
+                              FROM SEA_P_SYS_USER
+                             WHERE STAFF_NO = A.CLOSE_SFAFF_NO) CLOSE_STAFF_NAME,
+                           F.CREATE_TYPE_NAME,
+                           G.FLOW_STATUS_DETAIL_NAME,
+                           I.FLOW_FLAG_NAME,
+                           J.EXCEPT_SRC_NAME
+                      FROM (SELECT TMP.ALARM_SRC,
+                                   TMP.TASK_NO,
+                                   TMP.TASK_ID,
+                                   TMP.CREATE_TYPE,
+                                   TMP.SEND_ORG_NO,
+                                   TMP.SEND_SFAFF_NO,
+                                   TO_CHAR(TMP.START_TIME, 'YYYY-MM-DD') START_TIME,
+                                   TMP.CLOSE_ORG_NO,
+                                   TMP.CLOSE_SFAFF_NO,
+                                   TO_CHAR(TMP.CLOSE_TIME, 'YYYY-MM-DD') CLOSE_TIME,
+                                   TMP.FLOW_STATUS_CODE,
+                                   TMP.FLOW_STATUS_DETAIL,
+                                   TMP.FLOW_FLAG,
+                                   TMP.APP_NO,
+                                   TMP.MANAGE_TYPE
+                              FROM F_TASK_FLOW TMP
+                     WHERE 1 = 1
+   <if test="map.ORG_NO!=null and map.ORG_NO!=''">
+  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+		  FROM SEA_O_ORG S
+		 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		 START WITH ORG_NO = #{map.ORG_NO}
+		 )ORG WHERE TMP.SEND_ORG_NO=ORG.ORG_NO)
+   </if>
+   <if test="map.START_DATE!=null and map.START_DATE!=''">
+		AND TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{map.START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	</if>
+	<if test="map.END_DATE!=null and map.END_DATE!=''">
+  		AND TO_CHAR(TO_DATE(#{map.END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(TMP.START_TIME,'YYYY-MM-DD')
+	</if>
+	<if test="map.FLOW_STATUS_CODE!=null and map.FLOW_STATUS_CODE!=''">
+  		AND TMP.FLOW_FLAG=#{map.FLOW_STATUS_CODE}
+	</if>
+	<if test="map.CREATE_TYPE!=null and map.CREATE_TYPE!=''">
+		AND TMP.CREATE_TYPE=#{map.CREATE_TYPE}
+	</if>
+	) A,
+                           F_TASK_ALARM_RELA B,
+                           VW_FLOW_STATUS_CODE C,
+                           SEA_R_TMNL_RUN D,
+                           VW_CREATE_TYPE_CODE F,
+                           VW_FLOW_STATUS_DETAIL_CODE G,
+                           VW_FLOW_FLAG_CODE I,
+                           VW_EXCEPT_SRC J
+                     WHERE A.TASK_ID = B.TASK_ID(+)
+                       AND A.FLOW_STATUS_CODE = C.FLOW_STATUS_CODE(+)
+                       AND B.TERMINAL_ID = D.TERMINAL_ID(+)
+                       AND A.CREATE_TYPE = F.CREATE_TYPE_CODE(+)
+                       AND A.FLOW_STATUS_DETAIL =
+                           G.FLOW_STATUS_DETAIL_CODE(+)
+                       AND A.FLOW_FLAG = I.FLOW_FLAG_CODE(+)
+                       AND A.ALARM_SRC = J.EXCEPT_SRC_CODE(+))se, vw_cis_manage_type_code h
+          where se.MANAGE_TYPE = h.MANAGE_TYPE_CODE(+)
+        and se.flow_flag = '1'
+   </otherwise>
+	</choose>
+   
+   
+  </select>
+</mapper>

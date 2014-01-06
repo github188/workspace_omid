@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes
+END
+PortalDropZone.js
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/PortalDropZone.js
+END
+GridPortlet.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/GridPortlet.js
+END
+PortalColumn.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/PortalColumn.js
+END
+ChartPortlet.js
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/ChartPortlet.js
+END
+Portlet.js
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/Portlet.js
+END
+PortalPanel.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/omid/!svn/ver/507/src/main/webapp/js/portal/classes/PortalPanel.js
+END

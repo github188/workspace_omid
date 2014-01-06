@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan
+END
+MsgManageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan/MsgManageMapper.xml
+END
+LoginMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan/LoginMapper.xml
+END
+RoleManageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan/RoleManageMapper.xml
+END
+MsgSubscribeManageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan/MsgSubscribeManageMapper.xml
+END
+definenotSendMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/systMan/definenotSendMapper.xml
+END

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.TemplateManageMapper">
+	<cache />
+	<select id="queryTmnl" parameterType="hashmap"  useCache="false"  resultType="hashmap">
+		SELECT O.ORG_NAME,V.CONS_NO,C.CONS_NAME,V.TERMINAL_ADDR,V.TMNL_ASSET_NO,P.PROTOCOL_NAME,M.COLL_MODE,T.TMNL_TYPE,V.PROTOCOL_CODE,V.TERMINAL_TYPE_CODE,O.AREA_CODE
+        FROM SEA_VW_TMNL_RUN V,SEA_O_ORG O,SEA_C_CONS C,VW_PROTOCOL_CODE P,VW_COLL_MODE M,SEA_VW_TMNL_TYPE_CODE T 
+        WHERE 
+        O.ORG_NO=V.ORG_NO AND V.CONS_NO=C.CONS_NO AND V.PROTOCOL_CODE=P.PROTOCOL_CODE(+) AND V.COLL_MODE=M.COLL_MODE_CODE(+)
+        AND V.TERMINAL_TYPE_CODE=T.TMNL_TYPE_CODE(+)
+        <if test = "map.TMNL_TYPE_CODE!=''">
+        	AND V.TERMINAL_TYPE_CODE =#{map.TMNL_TYPE_CODE}
+        </if>
+        <if test = "map.PROTOCOL_CODE!=''">
+        	AND V.PROTOCOL_CODE=#{map.PROTOCOL_CODE}
+        </if>
+        <if test = "map.CONS_NO!=null">
+        	AND V.CONS_NO IN 
+        	<foreach collection="map.CONS_NO" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+            </foreach>
+        </if>
+        <if test = "map.TERMINAL_ADDR!=null">
+        	AND V.TERMINAL_ADDR IN 
+        	<foreach collection="map.TERMINAL_ADDR" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+            </foreach>
+        </if>
+	</select>
+	<select id="queryF9Temp" parameterType="hashmap" resultType="hashmap">
+		select oo.org_name,oo.org_no,b.protocol_code,vp.protocol_name,b.tmnl_type_code,vt.tmnl_type,b.event_no,b.event_name,b.rec_flag,b.event_level,b.event_anal,b.event_is_valid,b.create_app_flow,vs.event_name as alarm_name,vs.event_no as alarm_code,b.tmnl_template_id 
+		from b_tmnl_event_template b,vw_protocol_code vp,sea_vw_tmnl_type_code vt,sea_o_org oo,VW_SEA_ALARM_CODE vs
+		where b.protocol_code=vp.protocol_code(+) and b.tmnl_type_code=vt.tmnl_type_code and b.org_no=oo.org_no and b.alarm_code=vs.event_no(+)
+		<if test = "PROTOCOL_CODE!=''">
+			and  b.protocol_code = #{PROTOCOL_CODE}
+		</if>
+		<if test = "TMNL_TYPE_CODE!=''">
+			and  b.tmnl_type_code = #{TMNL_TYPE_CODE}
+		</if>
+	</select>
+	
+	<select id="querySeaAlarmCode01" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '01'
+	</select>
+	<select id="querySeaAlarmCode02" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '02'
+	</select>
+	<select id="querySeaAlarmCode03" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '03'
+	</select>
+
+    <select id="querySeaAlarmCode0101" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '01'
+	</select>
+	<select id="querySeaAlarmCode0202" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '02'
+	</select>
+	<select id="querySeaAlarmCode0303" resultType="hashmap">
+		SELECT  EVENT_NO,EVENT_NAME FROM VW_SEA_ALARM_CODE WHERE EVENT_TYPE = '03'
+	</select>
+
+	<select id="queryProtocolCode" resultType="hashmap">
+		SELECT PROTOCOL_CODE,PROTOCOL_NAME FROM VW_PROTOCOL_CODE UNION SELECT '' AS PROTOCOL_CODE,'全部' AS PROTOCOL_NAME FROM DUAL 
+	</select>
+	<select id="queryTmnlTypeCode" resultType="hashmap">
+		 SELECT TMNL_TYPE_CODE,TMNL_TYPE FROM SEA_VW_TMNL_TYPE_CODE UNION SELECT '' AS TMNL_TYPE_CODE,'全部' AS TMNL_TYPE FROM DUAL 
+	</select>
+	<update id="saveBTmnlEventTemplate" parameterType="hashmap">
+		UPDATE B_TMNL_EVENT_TEMPLATE 
+        SET REC_FLAG=#{REC_FLAG},EVENT_LEVEL=#{EVENT_LEVEL},EVENT_IS_VALID=#{EVENT_IS_VALID},CREATE_APP_FLOW=#{CREATE_APP_FLOW},ALARM_CODE=#{ALARM_CODE}
+        WHERE 
+        ORG_NO=#{ORG_NO} AND PROTOCOL_CODE=#{PROTOCOL_CODE} AND TMNL_TYPE_CODE=#{TMNL_TYPE_CODE} AND EVENT_NO=#{EVENT_NO}
+	</update>
+	<update id="saveBTmnlEveAppDef" parameterType="hashmap">
+		UPDATE B_TMNL_EVE_APP_DEF 
+        SET IS_VALID=#{IS_VALID},EVENT_IS_VALID=#{EVENT_IS_VALID},ALARM_CODE=#{ALARM_CODE}
+        WHERE 
+        TMNL_TEMPLATE_ID=#{TMNL_TEMPLATE_ID} AND EVENT_CODE=#{EVENT_CODE}
+	</update>
+	<select id="queryOrgNoNameByOrgType03" resultType="hashmap">
+		SELECT ORG_NO,ORG_NAME FROM SEA_O_ORG WHERE ORG_TYPE='03' UNION SELECT '' AS ORG_NO,'全部' AS ORG_NAME FROM DUAL 
+	</select>
+	<select id="queryTaskId" resultType="hashmap">
+		SELECT S_F_TASK_FRONT.NEXTVAL AS TASK_ID FROM DUAL
+	</select>
+	<insert id="insertFTaskFront" parameterType="hashmap">
+		INSERT INTO F_TASK_FRONT(TASK_ID,ORG_NO,OPER_TYPE_CODE,TASK_BEGIN_TIME,CALL_STATUS_CODE,TASK_SRC) 
+        VALUES (#{TASK_ID},#{ORG_NO},'03',SYSDATE,'1','03')
+	</insert>
+    <select id="queryTmnlByOrgNo" parameterType="string" resultType="hashmap">
+        SELECT DISTINCT R.TERMINAL_ID,R.PROTOCOL_CODE,R.TERMINAL_TYPE_CODE,O.AREA_CODE FROM SEA_VW_TMNL_RUN R,SEA_O_ORG O  WHERE R.ORG_NO IN(SELECT OC.CHILD_ORG_NO FROM SEA_O_ORG_CHILDS OC WHERE OC.ORG_NO=#{ORG_NO})
+        AND R.ORG_NO=O.ORG_NO 
+    </select>
+    <insert id="insertFTaskFrontDet">
+    	INSERT INTO F_TASK_FRONT_DET(TASK_ITEM_ID,TASK_ID,TERMINAL_ID,PROT_TYPE,PROT_AFN,EVENT_CODE,SET_PN,CALL_STATUS_CODE)
+    	select S_F_TASK_FRONT_DET.NEXTVAL,A.* from( 
+    	<foreach collection="list" item="item" index="index" separator=" union all ">
+    		select '${item.taskId}','${item.terminalId}','${item.protocolCode}','04','F9','0','1' from dual
+    	</foreach>)A
+    </insert>
+    <select id="queryTemplate" parameterType="hashmap" resultType="hashmap">
+    	SELECT B.REC_FLAG,B.EVENT_LEVEL,B.EVENT_NO FROM B_TMNL_EVENT_TEMPLATE B WHERE B.TMNL_TYPE_CODE=#{TMNL_TYPE_CODE} AND B.PROTOCOL_CODE=#{PROTOCOL_CODE}
+    </select>
+    <delete id="deleteFTaskFront" parameterType="string">
+    	DELETE FROM F_TASK_FRONT WHERE TASK_ID=#{taskId}
+    </delete>
+    <select id="queryUrl" resultType="hashmap">
+    	SELECT PARAM_ITEM_VAL FROM B_SYS_PARAMETER B WHERE PARAM_NO='INTERFACE' AND PARAM_ITEM_NO='OMID_URL' 
+    </select>
+    <select id="queryBCommProtocolItem" parameterType="hashmap" resultType="hashmap">
+		SELECT PROT_ITEM_NO,PROT_ITEM_SN FROM SEA_B_COMM_PROTOCOL_ITEM WHERE PROT_ITEM_NO LIKE '${PROT_ITEM_NO}%'
+	</select>
+	<insert id="insertTTmnlParam">
+		  MERGE INTO SEA_T_TMNL_PARAM DEST
+            USING 
+           (
+           <foreach collection="list" item="item" index="index" separator=" union all ">
+                SELECT #{item.terminalId} AS TMNL_ASSET_NO,#{item.protItemNo} AS PROT_ITEM_NO,'0' AS BLOCK_SN,#{item.protItemSn} AS INNER_BLOCK_SN,#{item.currentValue} AS CURRENT_VALUE,#{item.areaCode} AS AREA_CODE FROM DUAL
+           </foreach>
+           )SRC 
+            ON (DEST.TMNL_ASSET_NO = SRC.TMNL_ASSET_NO AND DEST.PROT_ITEM_NO=SRC.PROT_ITEM_NO AND DEST.BLOCK_SN=SRC.BLOCK_SN AND DEST.INNER_BLOCK_SN=SRC.INNER_BLOCK_SN)
+          WHEN MATCHED THEN
+            UPDATE SET DEST.HISTORY_VALUE = DEST.CURRENT_VALUE ,DEST.CURRENT_VALUE = SRC.CURRENT_VALUE, DEST.STATUS_CODE='03', DEST.IS_VALID=1, DEST.STAFF_NO='OMID'
+          WHEN NOT MATCHED THEN
+            INSERT(TMNL_ASSET_NO,PROT_ITEM_NO,CURRENT_VALUE,BLOCK_SN,INNER_BLOCK_SN,STATUS_CODE,IS_VALID,STAFF_NO,AREA_CODE) 
+            VALUES(SRC.TMNL_ASSET_NO,SRC.PROT_ITEM_NO,SRC.CURRENT_VALUE,SRC.BLOCK_SN,SRC.INNER_BLOCK_SN,'03',1,'OMID',SRC.AREA_CODE)
+	</insert>
+	<select id="queryEventAppDef" parameterType = "hashmap"  resultType = "hashmap">
+		SELECT BT.TMNL_TEMPLATE_ID,BT.OPER_TYPE_CODE,BT.PROT_TYPE_CODE,BT.EVENT_CODE,BT.EVENT_IS_VALID,BT.ALARM_CODE,VS.EVENT_NAME AS ALARM_NAME,BT.IS_VALID FROM B_TMNL_EVE_APP_DEF BT,VW_SEA_ALARM_CODE VS WHERE BT.ALARM_CODE=VS.EVENT_NO(+) AND BT.TMNL_TEMPLATE_ID=#{TMNL_TEMPLATE_ID}
+	</select>
+</mapper> 

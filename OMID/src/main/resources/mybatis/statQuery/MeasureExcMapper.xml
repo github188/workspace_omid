@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.statQuery.mapper.MeasureExcMapper">
+
+  <cache />
+  <!--
+  <select id="getOrgNo" parameterType="hashmap" resultType="hashmap">
+  	<if test="org_no!=null and org_no!=''">
+  		select s.org_name, s.org_no
+		  from sea_o_org s
+		 <if test="org_type!=null and org_type!=''">
+		 	where s.org_type=#{org_type}
+		 </if>
+		 connect by prior org_no = p_org_no
+		 start with s.org_no = #{org_no}
+  	</if>
+  <if test="org_no==null or org_no==''">
+  		select s.org_name, s.org_no
+		  from sea_o_org s
+		 where 7>=length(org_no)
+		 connect by prior org_no = p_org_no
+		 start with org_no ='34101'
+  </if>
+  </select>
+  -->
+   <select id="getOrgNo" parameterType="hashmap" resultType="hashmap">
+	  	<if test="org_no!=null and org_no!=''">
+	  		select s.org_name, s.org_no
+			  from sea_o_org s
+			where s.org_no = #{org_no}
+			or s.p_org_no = #{org_no}
+	  	</if>
+	  <if test="org_no==null or org_no==''">
+	  		select s.org_name, s.org_no
+			  from sea_o_org s
+			 where 7>=length(org_no)
+			 connect by prior org_no = p_org_no
+			 start with org_no ='34101'
+	  </if>
+  </select>
+  <!--异常数 饼 图-->
+  <select id="getTypePie" parameterType="hashmap" resultType="hashmap">
+	 SELECT AM.*, C.EXCEPT_TYPE_NAME NAME
+  FROM (SELECT count(1) VALUE, T.ALARM_TYPE
+          FROM 
+          (select aaa.ALARM_CNT,aaa.ALARM_TYPE from A_ALARM_ANALYSE aaa where aaa.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(aaa.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaa.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaa.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+	  	union all select aaah.ALARM_CNT,aaah.ALARM_TYPE from A_ALARM_ANALYSE_HIS aaah where aaah.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(aaah.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaah.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaah.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > )
+           T 
+          WHERE 1=1
+		 GROUP BY T.ALARM_TYPE
+	  UNION ALL
+	  SELECT count(1) VALUE, '03' ALARM_TYPE
+          FROM (select ate.ALARM_CNT from A_TMNL_EXCEPTION ate where ate.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(ate.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ate.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ate.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > 
+	  	union all  select ateh.ALARM_CNT from A_TMNL_EXCEPTION_HIS ateh where ateh.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(ateh.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ateh.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ateh.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > ) A WHERE 1=1
+			 ) AM,
+		       VW_EXCEPT_TYPE C
+		 WHERE AM.ALARM_TYPE = C.EXCEPT_TYPE
+  </select>
+  
+  <!--处理状态 饼 图-->
+  <select id="getEventStatePie" parameterType="hashmap" resultType="hashmap">
+	 SELECT TMP.VALUE, F.FLOW_STATUS_NAME NAME
+  FROM (SELECT count(1) VALUE, NAME
+          FROM (SELECT T.FLOW_STATUS_CODE NAME, T.ALARM_CNT VALUE
+                  FROM (
+                  select ate.ALARM_CNT,ate.FLOW_STATUS_CODE from A_TMNL_EXCEPTION ate where ate.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(ate.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ate.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ate.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > 
+	  	union all  select ateh.ALARM_CNT,ateh.FLOW_STATUS_CODE from A_TMNL_EXCEPTION_HIS ateh where ateh.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(ateh.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ateh.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ateh.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+                  ) T 
+		UNION ALL
+        SELECT M.FLOW_STATUS_CODE NAME, M.ALARM_CNT VALUE
+          FROM (select aaa.ALARM_CNT,aaa.FLOW_STATUS_CODE from A_ALARM_ANALYSE aaa where aaa.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(aaa.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaa.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaa.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+	  	union all select aaah.ALARM_CNT,aaah.FLOW_STATUS_CODE from A_ALARM_ANALYSE_HIS aaah where aaah.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(aaah.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaah.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaah.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >) M
+			)
+         GROUP BY NAME) TMP,
+       VW_FLOW_STATUS_CODE F
+ 	WHERE TMP.NAME = F.FLOW_STATUS_CODE
+  </select>
+  
+  <!--bar异常等级 图-->
+  <select id="getEventLevel" parameterType="hashmap" resultType="hashmap">
+	 SELECT count(1) AS VALUE, A.EVENT_LEVEL, B.EVENT_LEVEL_NAME,A.ALARM_TYPE,C.EXCEPT_TYPE_NAME NAME
+  FROM (SELECT T.ALARM_CNT CNT,
+               T.EVENT_LEVEL,
+               T.EXCEPT_SRC,
+               '03' ALARM_TYPE
+          FROM 
+          (select ate.ALARM_CNT,ate.EVENT_LEVEL,ate.EXCEPT_SRC from A_TMNL_EXCEPTION ate where ate.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(ate.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ate.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ate.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > 
+	  	union all  select ateh.ALARM_CNT,ateh.EVENT_LEVEL,ateh.EXCEPT_SRC from A_TMNL_EXCEPTION_HIS ateh where ateh.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(ateh.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE ateh.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ateh.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >)
+ T 
+	 UNION ALL
+        SELECT T.ALARM_CNT CNT,
+               T.EVENT_LEVEL,
+               T.ALARM_SRC,
+               T.ALARM_TYPE
+          FROM (
+          select aaa.ALARM_CNT,aaa.EVENT_LEVEL,aaa.ALARM_SRC,aaa.ALARM_TYPE from A_ALARM_ANALYSE aaa where aaa.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(aaa.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaa.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaa.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+	  	union all select aaah.ALARM_CNT,aaah.EVENT_LEVEL,aaah.ALARM_SRC,aaah.ALARM_TYPE from A_ALARM_ANALYSE_HIS aaah where aaah.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(aaah.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{ORG_NO}
+			 )ORG WHERE aaah.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaah.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+          ) T  
+			 ) A,
+       VW_EVENT_LEVEL B,
+       VW_EXCEPT_TYPE C
+ WHERE B.EVENT_LEVEL = A.EVENT_LEVEL
+   AND A.ALARM_TYPE = C.EXCEPT_TYPE
+ GROUP BY A.EVENT_LEVEL,
+          B.EVENT_LEVEL_NAME,
+          A.ALARM_TYPE,
+          C.EXCEPT_TYPE_NAME
+  </select>
+  
+  <!--异常数  按供电单位-->
+    <select id="getEventContByOrg" parameterType="hashmap" resultType="hashmap">
+    	SELECT TMP.VALUE,TMP.NAME ORG_NO, O.ORG_NAME NAME
+  FROM (SELECT count(1) VALUE, NAME
+          FROM (SELECT T.ORG_NO NAME, T.ALARM_CNT VALUE
+                  FROM (
+             select ate.ALARM_CNT,ate.ORG_NO from A_TMNL_EXCEPTION ate where ate.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(ate.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+         AND EXISTS (SELECT 1 FROM (
+		  		SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 WHERE S.ORG_NO = #{ORG_NO}
+				    OR S.P_ORG_NO = #{ORG_NO}
+				 )ORG WHERE ate.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ate.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if > 
+	  	union all  select ateh.ALARM_CNT,ateh.ORG_NO from A_TMNL_EXCEPTION_HIS ateh where ateh.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(ateh.HAPPEN_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+         AND EXISTS (SELECT 1 FROM (
+		  		SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 WHERE S.ORG_NO = #{ORG_NO}
+				    OR S.P_ORG_NO = #{ORG_NO}
+				 )ORG WHERE ateh.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND ateh.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+                  ) T 
+         UNION ALL
+                SELECT A.ORG_NO NAME, A.ALARM_CNT VALUE
+                  FROM (
+                  select aaa.ALARM_CNT,aaa.ORG_NO from A_ALARM_ANALYSE aaa where aaa.FLOW_STATUS_CODE in 
+          ('0','1','2','3') and TO_CHAR(aaa.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (
+		  		SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 WHERE S.ORG_NO = #{ORG_NO}
+				    OR S.P_ORG_NO = #{ORG_NO}
+				 )ORG WHERE aaa.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaa.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+	  	union all select aaah.ALARM_CNT,aaah.ORG_NO from A_ALARM_ANALYSE_HIS aaah where aaah.FLOW_STATUS_CODE in 
+          ('4','5') and TO_CHAR(aaah.ALARM_DATE,'YYYY-MM-DD') between TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+          and TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')  
+          AND EXISTS (SELECT 1 FROM (
+		  		SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 WHERE S.ORG_NO = #{ORG_NO}
+				    OR S.P_ORG_NO = #{ORG_NO}
+				 )ORG WHERE aaah.ORG_NO=ORG.ORG_NO)
+		<if test="FLOW_STATUS_CODE!=null and FLOW_STATUS_CODE!=''">
+	  		AND aaah.FLOW_STATUS_CODE=#{FLOW_STATUS_CODE}
+	  	</if >
+                  ) A  
+          )GROUP BY NAME) TMP,
+       SEA_O_ORG O
+ WHERE TMP.NAME = O.ORG_NO
+  </select>
+  <!--异常等级-->
+  <select id="getAlarmLevel" parameterType="hashmap" resultType="hashmap">
+  		select l.event_level value,l.event_level_name name from vw_event_level l
+  </select>
+   <!--异常类型-->
+  <select id="getAlarmType" parameterType="hashmap" resultType="hashmap">
+  		select l.except_type value,l.except_type_name name from vw_except_type l
+  </select>
+   <!--异常来源-->
+  <select id="getAlarmSrc" parameterType="hashmap" resultType="hashmap">
+  	  select s.EXCEPT_SRC_CODE value,s.EXCEPT_SRC_NAME name  from vw_except_src s
+  </select>
+  <!--流程状态-->
+  <select id="getFlowFlaging" parameterType="hashmap" resultType="hashmap">
+       select f.flow_flag_code value,f.flow_flag_name name from vw_flow_flag_code f where f.flow_flag_code in ('0','1')
+  </select>
+  <!--流程状态明细-->
+  <select id="getFlowStatus" parameterType="hashmap" resultType="hashmap">
+  	 select f.flow_status_code value,f.flow_status_name name from vw_flow_status_code f
+  </select>
+  <!--生成方式-->
+  <select id="getCreateType" parameterType="hashmap" resultType="hashmap">
+	 select c.CREATE_TYPE_CODE value,c.CREATE_TYPE_NAME name from vw_create_type_code c
+  </select>
+    <!--本级单位异常饼图
+  <select id="getSelfEventPie" parameterType="hashmap" resultType="hashmap">
+  			select sum(a.VALUE)value,a.ALARM_CODE,b.EVENT_NAME name from (
+  			select EXCEPT_CODE ALARM_CODE,'03' ALARM_TYPE,nvl(ALARM_CNT,0) VALUE
+		    from A_TMNL_EXCEPTION where 1=1
+		 <if test="ORG_NO!=null and ORG_NO!=''">
+		  	 AND ORG_NO in (select #{ORG_NO} from dual union
+			select c.child_org_no from  sea_o_org_childs c 
+			where c.org_no=#{ORG_NO} )
+		 </if>
+		 <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+		  	 AND EVENT_LEVEL=#{EVENT_LEVEL}
+		 </if>
+		<if test="START_DATE!=null and START_DATE!=''">
+  			AND TO_CHAR(HAPPEN_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	  	</if>
+	  	<if test="END_DATE!=null and END_DATE!=''">
+		  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(HAPPEN_DATE,'YYYY-MM-DD')
+	  	</if> 
+		  union all
+  			 SELECT ALARM_CODE,ALARM_TYPE, nvl(ALARM_CNT,0) VALUE
+			    from A_ALARM_ANALYSE WHERE 1=1
+   			 <if test="ORG_NO!=null and ORG_NO!=''">
+		  		 AND ORG_NO in (select #{ORG_NO} from dual union
+			select c.child_org_no from  sea_o_org_childs c 
+			where c.org_no=#{ORG_NO} )
+		 	 </if>
+  		   <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+		  	 AND EVENT_LEVEL=#{EVENT_LEVEL}
+		   </if>
+			<if test="START_DATE!=null and START_DATE!=''">
+		  			AND TO_CHAR(ALARM_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+		  	</if>
+		  	<if test="END_DATE!=null and END_DATE!=''">
+			  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(ALARM_DATE,'YYYY-MM-DD')
+		  	</if>
+			   ) a, VW_SEA_ALARM_CODE B
+			  WHERE a.ALARM_CODE = B.EVENT_NO
+			<if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+  				AND a.ALARM_TYPE = #{ALARM_TYPE}
+  			</if>
+		  GROUP BY B.EVENT_NAME, a.ALARM_CODE
+  </select>
+  -->
+  <!--下级单位饼图
+  <select id="getLowerEventPie" parameterType="hashmap" resultType="hashmap">
+  	  SELECT TMP.NAME, NVL(SUM(TMP.VALUE), 0) VALUE, TMP.ORG_NO
+     FROM (SELECT T.VALUE,T.ORG_NO,T.NAME FROM (SELECT T1.ALARM_CNT VALUE, T1.ORG_NO, B.ORG_SHORT_NAME NAME,
+     '03' ALARM_TYPE,T1.EVENT_LEVEL,T1.HAPPEN_DATE
+             FROM A_TMNL_EXCEPTION T1, SEA_O_ORG B
+            WHERE T1.ORG_NO = B.ORG_NO
+            and t1.FLOW_STATUS_CODE in ('1','2','3')
+      <if test="ORG_NO!=null and ORG_NO!=''">
+  		 AND B.P_ORG_NO = #{ORG_NO}
+ 	  </if>
+              )T
+              WHERE 1=1
+     <if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+		AND T.ALARM_TYPE = #{ALARM_TYPE}
+	 </if>
+	 <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+	  	 AND  T.EVENT_LEVEL=#{EVENT_LEVEL}
+	  </if>
+		<if test="START_DATE!=null and START_DATE!=''">
+	  			AND TO_CHAR(t.HAPPEN_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	  	</if>
+	  	<if test="END_DATE!=null and END_DATE!=''">
+		  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(t.HAPPEN_DATE,'YYYY-MM-DD')
+	  	</if>
+	   UNION ALL
+           SELECT T.ALARM_CNT VALUE, T.ORG_NO, B.ORG_SHORT_NAME NAME
+             FROM A_ALARM_ANALYSE T, SEA_O_ORG B
+            WHERE T.ORG_NO = B.ORG_NO
+            AND  t.FLOW_STATUS_CODE in ('1','2','3')
+      <if test="ORG_NO!=null and ORG_NO!=''">
+  		 AND B.P_ORG_NO = #{ORG_NO}
+ 	  </if>
+     <if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+		AND t.ALARM_TYPE = #{ALARM_TYPE}
+	 </if>
+	 <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+	  	 AND t.EVENT_LEVEL=#{EVENT_LEVEL}
+	  </if>
+		<if test="START_DATE!=null and START_DATE!=''">
+	  			AND TO_CHAR(t.ALARM_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	  	</if>
+	  	<if test="END_DATE!=null and END_DATE!=''">
+		  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(t.ALARM_DATE,'YYYY-MM-DD')
+	  	</if>
+	  ) TMP
+    GROUP BY TMP.ORG_NO, TMP.NAME
+  </select>
+  -->
+  <!--查询异常明细 
+  <select id="getEventDetail" parameterType="hashmap" resultType="hashmap">
+  	 SELECT NVL((CASE
+         WHEN A.FLOW_STATUS_CODE = '1' THEN
+          SUM(A.ALARM_CNT)
+       END), 0) NEW_EVENT,
+         NVL((CASE
+         WHEN A.FLOW_STATUS_CODE = '2' THEN
+        SUM(A.ALARM_CNT)
+       END), 0) NATIVE_EVENT,
+       NVL((CASE
+         WHEN A.FLOW_STATUS_CODE = '3' THEN
+          SUM(A.ALARM_CNT)
+       END), 0) MARKETING,
+       NVL(SUM(A.ALARM_CNT), 0) TOTAL,
+       A.EVENT_LEVEL,
+       A.ALARM_CODE,
+       B.CONS_SORT_NAME CONS_SORT,
+       F.EVENT_NAME,
+       E.EVENT_LEVEL_NAME LEVEL_NAME
+  FROM (SELECT CONS_NO, EVENT_LEVEL, ALARM_CODE, ALARM_CNT, FLOW_STATUS_CODE,ALARM_TYPE
+          FROM A_ALARM_ANALYSE a
+         WHERE  a.FLOW_STATUS_CODE in ('1','2','3')
+             <if test="ORG_NO!=null and ORG_NO!=''">
+		  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 
+				 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+				 START WITH ORG_NO = #{ORG_NO}
+				 )ORG WHERE a.ORG_NO=ORG.ORG_NO)
+		 	 </if>
+  			<if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+  				AND a.ALARM_TYPE = #{ALARM_TYPE}
+  			</if>
+  			<if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+		  	 AND a.EVENT_LEVEL=#{EVENT_LEVEL}
+		   </if>
+		<if test="START_DATE!=null and START_DATE!=''">
+	  			AND TO_CHAR(a.ALARM_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	  	</if>
+	  	<if test="END_DATE!=null and END_DATE!=''">
+		  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(a.ALARM_DATE,'YYYY-MM-DD')
+	  	</if>
+		     UNION ALL
+        SELECT CONS_NO,
+               EVENT_LEVEL,
+               EXCEPT_CODE ALARM_CODE,
+               ALARM_CNT,
+               FLOW_STATUS_CODE,
+               '03' ALARM_TYPE
+          from A_TMNL_EXCEPTION t where t.FLOW_STATUS_CODE in ('1','2','3')
+          <if test="ORG_NO!=null and ORG_NO!=''">
+		  	AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+				  FROM SEA_O_ORG S
+				 
+				 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+				 START WITH ORG_NO = #{ORG_NO}
+				 )ORG WHERE t.ORG_NO=ORG.ORG_NO)
+		  </if>
+		  <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+		  	 AND t.EVENT_LEVEL=#{EVENT_LEVEL}
+		  </if>
+		<if test="START_DATE!=null and START_DATE!=''">
+	  			AND TO_CHAR(t.HAPPEN_DATE,'YYYY-MM-DD')>=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+	  	</if>
+	  	<if test="END_DATE!=null and END_DATE!=''">
+		  		AND TO_CHAR(TO_DATE(#{END_DATE},'YYYY-MM-DD'),'YYYY-MM-DD') >=TO_CHAR(t.HAPPEN_DATE,'YYYY-MM-DD')
+	  	</if>
+       ) A,
+       VW_CONS_SORT B,
+       SEA_C_CONS D,
+       VW_EVENT_LEVEL E,
+       VW_SEA_ALARM_CODE F
+ WHERE A.CONS_NO = D.CONS_NO
+   AND D.CONS_SORT_CODE = B.CONS_SORT
+   AND A.EVENT_LEVEL = E.EVENT_LEVEL
+   AND A.ALARM_CODE = F.EVENT_NO
+    <if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+		AND A.ALARM_TYPE = #{ALARM_TYPE}
+	 </if>
+ GROUP BY A.EVENT_LEVEL,
+          B.CONS_SORT_NAME,
+          F.EVENT_NAME,
+          A.ALARM_CODE,
+          E.EVENT_LEVEL_NAME,
+          A.FLOW_STATUS_CODE
+   order by B.CONS_SORT_NAME
+  </select>
+  -->
+    <!--本级单位异常饼图-->
+  <select id="getSelfEventPie" parameterType="hashmap" resultType="hashmap">
+  	SELECT A.VALUE,B.EVENT_NAME NAME FROM (
+  	SELECT T.ALARM_CODE,SUM(T.ALARM_CNT)VALUE FROM T_ORG_STAT_D T
+  	 WHERE TO_CHAR(T.STAT_DATE,'YYYY-MM-DD')=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+		 <if test="ORG_NO!=null and ORG_NO!=''">
+		  	 AND T.ORG_NO IN (SELECT #{ORG_NO} FROM DUAL UNION
+			SELECT C.CHILD_ORG_NO FROM  SEA_O_ORG_CHILDS C 
+			WHERE C.ORG_NO=#{ORG_NO} )
+		 </if>
+		 <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+		  	 AND t.EVENT_LEVEL=#{EVENT_LEVEL}
+		 </if>
+		 <if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+			AND t.ALARM_TYPE = #{ALARM_TYPE}
+		</if>
+		GROUP BY T.ALARM_CODE)A, VW_SEA_ALARM_CODE B
+		WHERE A.ALARM_CODE=B.EVENT_NO
+  </select>
+  <!--下级单位饼图-->
+  <select id="getLowerEventPie" parameterType="hashmap" resultType="hashmap">
+  	SELECT A.VALUE,B.ORG_SHORT_NAME NAME FROM (SELECT T.ORG_NO ORG_NO,SUM(T.ALARM_CNT)VALUE FROM T_ORG_STAT_D T
+  	WHERE TO_CHAR(T.STAT_DATE,'YYYY-MM-DD')=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+     <if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+		AND T.ALARM_TYPE = #{ALARM_TYPE}
+	 </if>
+	 <if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+	  	 AND  T.EVENT_LEVEL=#{EVENT_LEVEL}
+	  </if>
+	  GROUP BY T.ORG_NO)A,(SELECT ORG_NO,ORG_NAME,ORG_SHORT_NAME FROM SEA_O_ORG 
+	  <if test="ORG_NO!=null and ORG_NO!=''">
+  		 where (P_ORG_NO = #{ORG_NO} OR ORG_NO=#{ORG_NO})
+ 	  </if>) B
+	  WHERE A.ORG_NO=B.ORG_NO
+  </select>
+  <!--查询异常明细 -->
+  <select id="getEventDetail" parameterType="hashmap" resultType="hashmap">
+SELECT A.*, B.EVENT_NAME, C.EVENT_LEVEL_NAME LEVEL_NAME
+  FROM (SELECT ALARM_CODE,
+               EVENT_LEVEL,
+               SUM(A_CNT) A_CNT,
+               SUM(B_CNT) B_CNT,
+               SUM(C_CNT) C_CNT,
+               SUM(D_CNT) D_CNT,
+               SUM(E_CNT) E_CNT,
+               SUM(F_CNT) F_CNT,
+               SUM(ALARM_CNT)ALARM_CNT,
+               SUM(ALARM_APP_CNT)ALARM_APP_CNT
+          FROM (SELECT T.ALARM_CODE,
+                       T.EVENT_LEVEL,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '01' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) A_CNT,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '02' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) B_CNT,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '03' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) C_CNT,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '04' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) D_CNT,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '05' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) E_CNT,
+                       NVL((CASE
+                             WHEN T.CONS_SORT = '06' THEN
+                              SUM(T.ALARM_CNT)
+                             ELSE
+                              NULL
+                           END),
+                           0) F_CNT,
+                      NVL(SUM(T.ALARM_CNT),0) ALARM_CNT,
+                       NVL(SUM(T.ALARM_APP_CNT),0) ALARM_APP_CNT
+                  FROM T_ORG_STAT_D T
+      WHERE TO_CHAR(T.STAT_DATE,'YYYY-MM-DD')=TO_CHAR(TO_DATE(#{START_DATE},'YYYY-MM-DD'),'YYYY-MM-DD')
+     <if test="ORG_NO!=null and ORG_NO!=''">
+  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+		  FROM SEA_O_ORG S
+		 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		 START WITH ORG_NO = #{ORG_NO}
+		 )ORG WHERE T.ORG_NO=ORG.ORG_NO)
+ 	 </if>
+	<if test="ALARM_TYPE!=null and ALARM_TYPE!=''">
+		AND t.ALARM_TYPE = #{ALARM_TYPE}
+	</if>
+	<if test="EVENT_LEVEL!=null and EVENT_LEVEL!=''">
+  	 AND t.EVENT_LEVEL=#{EVENT_LEVEL}
+   </if>
+   GROUP BY T.ALARM_CODE, T.EVENT_LEVEL, T.CONS_SORT)
+         GROUP BY ALARM_CODE, EVENT_LEVEL) A,
+       VW_SEA_ALARM_CODE B,
+       VW_EVENT_LEVEL C
+ WHERE A.ALARM_CODE = B.EVENT_NO
+   AND A.EVENT_LEVEL = C.EVENT_LEVEL
+   ORDER BY A.EVENT_LEVEL,A.ALARM_CODE
+  </select>
+</mapper>

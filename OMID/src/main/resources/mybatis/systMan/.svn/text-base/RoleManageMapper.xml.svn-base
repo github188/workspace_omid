@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.RoleManageMapper">
+	<cache />
+	<select id="queryPRole" useCache="false" resultType="hashmap">
+		SELECT P.ROLE_ID,
+		       P.ROLE_DESC,
+		       A.ROLE_ATTR_CODE_NAME AS ROLE_ATTR_NAME,
+		       P.ROLE_LEVEL,
+		       P.ROLE_ATTR           AS ROLE_ATTR_CODE
+		  FROM P_ROLE P, SEA.VW_ROLE_ATTR A
+		 WHERE P.ROLE_ATTR = A.ROLE_ATTR_CODE(+)
+		   AND P.ORG_NO = #{orgNo}
+		 ORDER BY P.ROLE_ID		
+	</select>
+	
+	<select id="queryPSysUser" useCache="false" resultType="hashmap">
+		SELECT SU.STAFF_NO, O.ORG_NAME, SU.NAME
+		  FROM P_ACCESS_ROLE AR, SEA_P_SYS_USER SU, SEA_O_ORG O
+		 WHERE AR.STAFF_NO = SU.STAFF_NO
+		   AND SU.ORG_NO = O.ORG_NO
+		   AND AR.ROLE_ID = #{map.roleId}
+		<if test = "map.STAFF_NO!=''">
+			AND P.STAFF_NO = '${map.STAFF_NO}'
+		</if>
+		<if test = "map.STAFF_NAME!=''">
+			AND P.NAME = '${map.STAFF_NAME}'
+		</if>
+		ORDER BY O.ORG_NO
+	</select>
+	
+	<select id = "queryVwRoleAttr" resultType = "hashmap">
+		SELECT ROLE_ATTR_CODE,ROLE_ATTR_CODE_NAME FROM SEA.VW_ROLE_ATTR
+	</select>
+	
+	<select id = "queryOOrg" resultType = "hashmap">
+		SELECT O.ORG_NO,O.ORG_NAME FROM SEA.O_ORG O WHERE O.ORG_TYPE = '03'
+	</select>
+	
+	<insert id="insertPRole" parameterType="hashmap">
+    	INSERT INTO P_ROLE(ROLE_ID,ROLE_DESC,ROLE_ATTR,ROLE_LEVEL,ORG_NO)
+    	select S_P_ROLE.NEXTVAL,A.* from( 
+    		select '${ROLE_NAME}','${ROLE_ATTR}','${ROLE_LEVEL}',#{orgNo} from dual
+    		)A
+    </insert>
+    <update id="updatePRole" parameterType="hashmap">
+		UPDATE P_ROLE 
+        SET ROLE_DESC='${ROLE_NAME}',ROLE_ATTR='${ROLE_ATTR}',ROLE_LEVEL='${ROLE_LEVEL}'
+        WHERE 
+        ROLE_ID=#{ROLE_ID}
+	</update>
+	
+	<insert id="savePAccessRole">
+		  MERGE INTO P_ACCESS_ROLE DEST
+            USING 
+           (
+           <foreach collection="list" item="item" index="index" separator=" union all ">
+                SELECT '${item.roleId}' AS ROLE_ID,'${item.staffNo}' AS STAFF_NO FROM DUAL
+           </foreach>
+           )SRC 
+            ON (DEST.ROLE_ID = SRC.ROLE_ID AND DEST.STAFF_NO=SRC.STAFF_NO)
+            WHEN NOT MATCHED THEN
+            INSERT(ROLE_ID,STAFF_NO) 
+            VALUES(SRC.ROLE_ID,SRC.STAFF_NO)
+	</insert>
+	
+	<select id = "queryRowByStaffNo" resultType = "hashmap" parameterType="hashmap">
+		  SELECT A.ROWNUMBER FROM
+           (SELECT ROWNUM-1 AS ROWNUMBER,ROLE_ID FROM P_ROLE )A,
+           (SELECT ROLE_ID FROM P_ACCESS_ROLE WHERE STAFF_NO=#{STAFF_NO})B
+         WHERE A.ROLE_ID=B.ROLE_ID ORDER BY A.ROLE_ID
+	</select>
+	
+	<delete id="deletePAccessRole" parameterType="string">
+		delete from p_access_role where staff_no=#{staffNo}
+	</delete>
+	
+	<delete id="deletePRole" parameterType="hashmap">
+		delete from p_role where role_id in 
+		<foreach collection="ROLE_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+        </foreach>
+	</delete>
+	
+	<delete id="deletePAccessRoleByRoleId" parameterType="hashmap">
+		delete from p_access_role where role_id in 
+		<foreach collection="ROLE_ID" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+        </foreach>
+	</delete>
+	
+	<delete id="deletePAccessRoleByStaffno" parameterType="hashmap">
+		DELETE FROM P_ACCESS_ROLE WHERE STAFF_NO IN
+		<foreach collection="staffnos" item="item" index="index" open="(" separator="," close=")">  
+               '${item}'
+        </foreach>
+	</delete>
+	
+	<select id="findPSysUserByOrgNo" resultType="hashmap">
+		SELECT SU.STAFF_NO, SU.NAME, O.*
+		  FROM SEA_P_SYS_USER SU,
+		       (SELECT OO.ORG_NO, OO.ORG_NAME
+		          FROM SEA_O_ORG OO
+		         START WITH OO.ORG_NO = #{orgNo}
+		        CONNECT BY PRIOR OO.ORG_NO = OO.P_ORG_NO) O
+		 WHERE SU.ORG_NO = O.ORG_NO
+	</select>
+	
+</mapper> 

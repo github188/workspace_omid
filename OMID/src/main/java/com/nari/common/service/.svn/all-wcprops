@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/service
+END
+IBaseService.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/service/IBaseService.java
+END
+ICommonService.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/omid/!svn/ver/507/src/main/java/com/nari/common/service/ICommonService.java
+END

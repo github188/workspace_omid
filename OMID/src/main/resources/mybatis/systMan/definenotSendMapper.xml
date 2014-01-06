@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.sysman.mapper.DefinenotSendMapper">
+
+  <cache />
+<select id="qureyList"  parameterType="string"  resultType="hashmap">
+    SELECT sea.ORG_NO,SEA.ORG_NAME, SEA.PERSONNEL_NAME, SEA.MOBILE_NO, SEA.POSITION,SEA.CALLING_CARD_ID
+    FROM W_SMS_CALLING_CARD SEA
+     where sea.calling_card_id IS NOT NULL
+    <if test="map.org_name!='' and map.org_name!=null">
+    and SEA.ORG_NAME like '%${map.org_name}%'
+    </if>
+    <if test="map.personnel_name!='' and map.personnel_name!=null">
+    and SEA.PERSONNEL_NAME like '%${map.personnel_name}%'
+    </if>
+    <if test="map.mobile_no!='' and map.mobile_no!=null">
+    and SEA.MOBILE_NO like '%${map.mobile_no}%'
+    </if>
+ </select >
+ <insert id="addManage" parameterType="string">
+  INSERT INTO W_SMS_CALLING_CARD
+    (CALLING_CARD_ID,
+     ORG_NAME,
+     PERSONNEL_NAME,
+     MOBILE_NO,
+     POSITION,
+     STAFF_NO)
+  VALUES
+    (S_W_SMS_CALLING_CARD.NEXTVAL,#{map.org_name},#{map.personnel_name},#{map.mobile_no},#{map.position},'nijl')
+</insert>
+  <update id="updateManage" parameterType="string">
+       UPDATE W_SMS_CALLING_CARD SEA
+       SET SEA.PERSONNEL_NAME =#{map.personnel_name},
+       SEA.ORG_NAME =#{map.org_name},
+       SEA.MOBILE_NO =#{map.mobile_no},
+       SEA.POSITION=#{map.position}
+       WHERE  SEA.CALLING_CARD_ID=#{map.calling_card_id}
+</update>
+  <delete id="deleteManage" parameterType="string">
+  DELETE FROM w_sms_calling_card w WHERE w.calling_card_id=#{map.calling_card_id}
+</delete>
+<select id="getSendRecId" resultType="string">
+	SELECT S_W_SMS_SEND_REC.NEXTVAL ID FROM DUAL
+</select>
+ <insert id="saveMegRec" parameterType="string">
+INSERT INTO W_SMS_SEND_REC
+  (SEND_REC_ID,
+   BATCH_NO,
+   SEND_STAFF_NO,
+   ORG_NO,
+   CONS_NO,
+   CONTACT_MODE,
+   USER_NAME,
+   MOBILE_NO,
+   SEND_CONTENT,
+   SEND_TIME,
+   SEND_MODE,
+   SEND_STATUS,
+   SEND_COUNTS)
+VALUES
+  (#{map.SEND_REC_ID}, 
+     #{map.BATCH_NO},
+     #{map.SEND_STAFF_NO},
+     #{map.ORG_NO}, 
+      '',
+      '',
+     #{map.USER_NAME}, 
+     #{map.MOBILE_NO}, 
+     #{map.SEND_CONTENT}, 
+     #{map.SEND_TIME}, 
+     #{map.SEND_MODE}, 
+     #{map.SEND_STATUS}, 
+     '')
+</insert>
+ <update id="updateMsgSendStatus" parameterType="string">
+ UPDATE W_SMS_SEND_REC S
+   SET S.SEND_STATUS =#{map.t3}
+ WHERE S.SEND_REC_ID =#{map.t1}
+   AND S.BATCH_NO =#{map.t2}
+</update>
+<select id="queryStaffAliasOrgNo" parameterType="string"  resultType="string">
+	SELECT O.ALIAS_ORG_NO FROM sea.O_ORG O WHERE O.ORG_NO =#{orgno}
+</select>
+<select id="findConfig" parameterType="string"  resultType="string">
+	select b.param_item_val from b_sys_parameter b where b.param_no='INTERFACE' and b.param_item_no=upper(#{config})
+</select>
+ <select id="msgSendQuery" parameterType="string"  resultType="hashmap">
+SELECT W.ORG_NO,
+       O.ORG_NAME,
+       W.CONS_NO,
+       C.CONS_NAME,
+       W.SEND_STAFF_NO,
+       W.USER_NAME,
+       W.CONTACT_MODE,
+       W.MOBILE_NO,
+       W.SEND_CONTENT,
+       TO_CHAR(W.SEND_TIME, 'yyyy-mm-dd hh24:mi:ss') AS SEND_DATE,
+       W.SEND_MODE,
+       W.SEND_STATUS,
+       W.SEND_COUNTS
+  FROM W_SMS_SEND_REC W, SEA.C_CONS C, SEA.O_ORG O
+ WHERE W.CONS_NO = C.CONS_NO(+)
+   AND W.SEND_TIME BETWEEN TO_DATE('${map.start_Time}', 'yyyy-mm-dd') AND
+       TO_DATE('${map.end_Time}', 'yyyy-mm-dd') + 1
+   AND W.ORG_NO = O.ORG_NO
+   AND O.ORG_NO IN (SELECT OOC.CHILD_ORG_NO
+                      FROM SEA.O_ORG_CHILDS OOC
+                     WHERE OOC.ORG_NO =#{map.orgcompany}
+                    UNION
+                    SELECT #{map.orgcompany} FROM DUAL)
+   <if test="map.sendstatus!='' and map.sendstatus!=null">
+   AND W.SEND_STATUS IN (#{map.sendstatus})
+   </if>
+   <if test="map.msgsendway!='' and map.msgsendway!=null">
+   AND W.SEND_MODE IN (#{map.msgsendway})
+   </if>
+   <if test="map.sendPerson!='' and map.sendPerson!=null">
+   AND W.SEND_STAFF_NO LIKE '%${map.sendPerson}%'
+   </if>
+ ORDER BY W.SEND_TIME DESC
+  </select>
+  <select id="queryOrgNolist" parameterType="string"  resultType="hashmap">
+	      select org_no,org_name,org_type
+  from (
+    select s.org_name, s.org_no,s.org_type 
+      from sea_o_org s
+      where org_no =#{orgNo}
+       union 
+     select s.org_name, s.org_no,s.org_type 
+      from sea_o_org s   
+      where p_org_no =#{orgNo}
+       ) order by org_no  
+</select>
+ </mapper>

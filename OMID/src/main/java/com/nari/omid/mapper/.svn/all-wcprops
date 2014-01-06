@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper
+END
+TemplateManageMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/TemplateManageMapper.java
+END
+AccountMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/AccountMapper.java
+END
+TmnlParamSetMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/TmnlParamSetMapper.java
+END
+RoleManageMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/RoleManageMapper.java
+END
+MeasAnCountMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/MeasAnCountMapper.java
+END
+MainPageMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/MainPageMapper.java
+END
+OnLineCheck.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/OnLineCheck.java
+END
+GisMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/omid/!svn/ver/507/src/main/java/com/nari/omid/mapper/GisMapper.java
+END

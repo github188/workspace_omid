@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.statQuery.mapper.EquipEvaluateMapper">
+
+  <cache />
+  <!-- 终端评价-->
+  <select id="getEquipList" useCache="false" resultType="hashmap">
+  	    select a.*,
+  	    c.org_name,
+  	    decode(a.equip_count,
+              0,
+              100,
+              round(a.DISTORT_COUNT / a.equip_count, 2))*100||'%' DISTORT_RATE,
+      	 decode(a.equip_count,
+              0,
+              100,
+              round(a.BUG_COUNT / a.equip_count, 2))*100||'%' BUG_RATE,
+      	 decode(a.equip_count,
+              0,
+              100,
+              round(a.SUCC_COUNT / a.equip_count, 2))*100||'%' SUCC_RATE,
+              b.
+         <choose>
+         	<when test="map.GROUP_CONDITION=='TYPE_CODE'">
+         		<if test="map.EQUIP_TYPE=='01'">
+         			tmnl_type
+         		</if>
+         		<if test="map.EQUIP_TYPE=='02'">
+         			meter_type
+         		</if>
+         	</when>
+         	<when test="map.GROUP_CONDITION=='FACTORY_CODE'">
+         		factory_name
+         	</when>
+         	<otherwise>
+         		protocol_name
+         	</otherwise>
+         </choose>
+         name
+         from (select t.org_no,
+               t.
+     <choose>
+     	<when test="map.GROUP_CONDITION=='TYPE_CODE'">
+     		TYPE_CODE
+     	</when>
+     	<when test="map.GROUP_CONDITION=='FACTORY_CODE'">
+     		FACTORY_CODE
+     	</when>
+     	<otherwise>
+     		PROTOCOL_CODE
+     	</otherwise>
+     </choose>,
+               nvl(sum(t.stat_cnt1), 0) equip_count,
+               nvl(case
+                 when t.check_index_code = '01' then
+                  sum(t.stat_cnt2)
+                 else
+                  null
+               end, 0) DISTORT_COUNT,
+               nvl(case
+                 when t.check_index_code = '02' then
+                  sum(t.stat_cnt2)
+                 else
+                  null
+               end, 0) BUG_COUNT,
+               nvl(case
+                 when t.check_index_code = '03' then
+                 sum(t.stat_cnt2)
+                 else
+                  null
+               end, 0) SUCC_COUNT
+          from t_equipment_use_assess t where 1=1
+		<if test="map.ORG_NO!=null and map.ORG_NO!=''">
+	  		AND EXISTS (SELECT 1 FROM (SELECT S.ORG_NO
+			  FROM SEA_O_ORG S
+			 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+			 START WITH ORG_NO = #{map.ORG_NO}
+			 ORDER BY S.ORG_NO)ORG WHERE T.ORG_NO=ORG.ORG_NO)
+		</if>
+		<if test="map.EQUIP_TYPE!=null and map.EQUIP_TYPE!=''">
+         	and	SORT_CODE=#{map.EQUIP_TYPE}
+        </if>
+ 		<if test="map.DATE_MONTH!=null and map.DATE_MONTH!=''">
+	  		and to_char(t.STAT_DATE,'yyyy-mm')=to_char(to_date(#{map.DATE_MONTH},'yyyy-mm'),'yyyy-mm')
+		</if>
+		 group by t.org_no, t.
+	<choose>
+     	<when test="map.GROUP_CONDITION=='TYPE_CODE'">
+     		TYPE_CODE
+     	</when>
+     	<when test="map.GROUP_CONDITION=='FACTORY_CODE'">
+     		FACTORY_CODE
+     	</when>
+     	<otherwise>
+     		PROTOCOL_CODE
+     	</otherwise>
+     </choose>, t.check_index_code) a,
+		 <choose>
+		 	<when test="map.EQUIP_TYPE=='01'">
+		 		<if test="map.GROUP_CONDITION=='FACTORY_CODE'">
+		 			sea_Vw_Tmnl_Factory
+		 		</if>
+		 		<if test="map.GROUP_CONDITION=='PROTOCOL_CODE'">
+		 			SEA_Vw_Protocol_Code
+		 		</if>
+		 		<if test="map.GROUP_CONDITION=='TYPE_CODE'">
+		 			SEA_Vw_Tmnl_Type_Code
+		 		</if>
+		 	</when>
+		 	<when test="map.EQUIP_TYPE=='02'">
+		 		<if test="map.GROUP_CONDITION=='FACTORY_CODE'">
+		 			sea_Vw_Met_Factory
+		 		</if>
+		 		<if test="map.GROUP_CONDITION=='PROTOCOL_CODE'">
+		 			sea_Vw_Met_Comm_Protocol
+		 		</if>
+		 		<if test="map.GROUP_CONDITION=='TYPE_CODE'">
+		 			sea_Vw_Met_Type_Code
+		 		</if>
+		 	</when>
+         </choose>
+         b,
+         sea_o_org c
+ 	where a.org_no=c.org_no and a.
+ 	<choose>
+     	<when test="map.GROUP_CONDITION=='TYPE_CODE'">
+     		TYPE_CODE
+     	</when>
+     	<when test="map.GROUP_CONDITION=='FACTORY_CODE'">
+     		FACTORY_CODE
+     	</when>
+     	<otherwise>
+     		PROTOCOL_CODE
+     	</otherwise>
+     </choose> = b.
+ 	 <choose>
+     	<when test="map.GROUP_CONDITION=='TYPE_CODE'">
+     		<if test="map.EQUIP_TYPE=='01'">
+     			tmnl_type_code
+     		</if>
+     		<if test="map.EQUIP_TYPE=='02'">
+     			meter_type_code
+     		</if>
+     	</when>
+     	<when test="map.GROUP_CONDITION=='FACTORY_CODE'">
+     		FACTORY_CODE
+     	</when>
+     	<otherwise>
+     		PROTOCOL_CODE
+     	</otherwise>
+     </choose>
+     order by SUCC_RATE desc
+  </select>
+    <!--电表评价-->
+  <select id="getMeterList" parameterType="hashmap" resultType="hashmap">
+  	
+  </select>
+</mapper>

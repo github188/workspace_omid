@@ -1,0 +1,13 @@
+参考文件
+measureExceptionAnal.js  3423行
+需要注释掉原来 分页的 dockedItems或者bbar加上下面代码
+	
+	abnormalInfoGrid.addDocked(new Ext.create('Ext.ux.MyToolBar',{
+		dock: 'bottom',
+		expallable : true,//是否导出全部
+		expcurable : true,//是否导出当前页
+		grid : abnormalInfoGrid,//当前需要导出的grid
+		title : '计量异常事件明细',//导出excel的文件名称
+		store: msExceAnalStore,
+		displayInfo: true
+	}));

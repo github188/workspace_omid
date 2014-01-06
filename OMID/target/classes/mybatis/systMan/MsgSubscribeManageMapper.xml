@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.sysman.mapper.MsgSubscribeManageMapper">
+	    <cache />
+<!-- 查询订阅类型-->
+<select id= "querySubsType"  parameterType="string"  resultType="hashmap">
+	SELECT VW.SUBS_TYPE_CODE, VW.SUBS_TYPE_CODE_NAME FROM VW_SUBS_TYPE VW
+</select >
+<!--点击查询按钮触发的操作 -->
+<select id= "querySmsScribeInfo" parameterType="string"  resultType="hashmap">
+SELECT W.SUBSCRIBE_ID,W.ORG_NO,O.ORG_NAME, W.SUBSCRIBE_NAME,W.SUBS_TYPE_CODE,TYPE.SUBS_TYPE_CODE_NAME, 
+	   W.SEND_USER_LIMIT,TO_CHAR(W.START_DATE,'yyyy-mm-dd') START_DATE, TO_CHAR(W.END_DATE,'yyyy-mm-dd') END_DATE,
+	   W.SEND_TIME_S, W.SEND_TIME_E,W.STAFF_NO,TO_CHAR(W.CREATE_DATE,'yyyy-mm-dd hh24:mi:ss') CREATE_DATE
+FROM   W_SMS_SUBSCRIBE W, sea_O_ORG O,VW_SUBS_TYPE TYPE 
+WHERE  W.ORG_NO = O.ORG_NO(+) AND W.SUBS_TYPE_CODE = TYPE.SUBS_TYPE_CODE(+) AND W.IS_VALID= '1'
+      AND W.ORG_NO = '${map.orgNo}'
+<if test=" '-1' != map.subsTypeCode">
+	 AND  W.SUBS_TYPE_CODE = '${map.subsTypeCode}'
+</if>
+<if test = " '-1' != map.sendUserLimit">
+	  AND W.SEND_USER_LIMIT = '${map.sendUserLimit}'
+</if>
+ORDER BY W.CREATE_DATE DESC
+</select >
+
+<!--查询供电单位 -->
+<select id="getOrgNo" parameterType="string" resultType="hashmap">
+  	  select org_no,org_name,org_type
+  from (
+  	select s.org_name, s.org_no,s.org_type 
+		  from sea_O_ORG s
+		  where org_no = #{orgNo}
+       union 
+     select s.org_name, s.org_no,s.org_type 
+      from sea_O_ORG s       
+      where p_org_no =#{orgNo}	
+       ) order by org_no	  
+</select>
+<!--查询短信模板内容-->
+<select id="querySmsTemplateContent" parameterType="string" resultType="hashmap">
+	  <!--SELECT W.TEMPLATE_CONTENT
+       FROM sea.W_SMS_SEND_TEMPLATE W 
+      WHERE W.SEND_TYPE_CODE = #{sendTypeCode}-->
+      SELECT W.TEMPLATE_CONTENT
+        FROM sea.W_SMS_SEND_TEMPLATE W
+       where w.send_template_id=#{sendTypeCode}
+</select>
+
+<!--注销短信订阅信息 -->
+<update id="cancelMsgSub" parameterType="string">
+  	  UPDATE W_SMS_SUBSCRIBE  SET IS_VALID = '0' WHERE SUBSCRIBE_ID = #{id}
+</update>
+
+<!--更新短信订阅信息-->
+<update id="updateSmsSubscribeInfo" parameterType="string" >
+UPDATE W_SMS_SUBSCRIBE 
+SET SUBSCRIBE_NAME=#{map.subscribeName},SUBS_TYPE_CODE=#{map.subsTypeCode},
+	START_DATE= TO_DATE(#{map.startDate},'yyyy-mm-dd'),
+	END_DATE= TO_DATE(#{map.endDate},'yyyy-mm-dd'),
+	SEND_TIME_S= #{map.sendTimeS},
+	SEND_TIME_E= #{map.sendTimeE}
+	WHERE SUBSCRIBE_ID=#{map.id}
+</update>
+
+<!-- 查询短信订阅事件信息-->
+<select id="querySmsScribeObj" parameterType="string" resultType="hashmap">
+SELECT OBJ.RECORD_ID,OBJ.SUBSCRIBE_ID, OBJ.EVENT_NO,
+	   EVENT.EVENT_NAME, OBJ.EVENT_SRC, SRC.EVENT_SRC_NAME, 
+       OBJ.STAFF_NO_ID, OBJ.STAFF_TEMPLATE_ID, OBJ.CONS_NO_ID, OBJ.CONS_TEMPLATE_ID, OBJ.DEFINE_USER_ID, 
+       OBJ.DEF_TEMPLATE_ID, 
+         ( 
+          SELECT T.TEMPLATE_NAME 
+                 FROM sea.W_SMS_SEND_TEMPLATE T
+                 WHERE T.SEND_TYPE_CODE = OBJ.STAFF_TEMPLATE_ID AND ROWNUM = 1
+          ) STAFF_TEMPLATE_NAME, 
+          ( SELECT T.TEMPLATE_NAME 
+                   FROM sea.W_SMS_SEND_TEMPLATE T 
+                   WHERE T.SEND_TYPE_CODE = OBJ.CONS_TEMPLATE_ID AND ROWNUM = 1
+           ) CONS_TEMPLATE_NAME,
+          (SELECT T.TEMPLATE_NAME 
+                 FROM sea.W_SMS_SEND_TEMPLATE T 
+                 WHERE T.SEND_TYPE_CODE = OBJ.DEF_TEMPLATE_ID AND ROWNUM = 1
+           ) DEF_TEMPLATE_NAME
+        FROM W_SMS_SUBSCRIBE_OBJ OBJ,
+             sea.VW_EVENT_SRC SRC,
+            (
+            SELECT VM.EVENT_NO AS EVENT_CODE ,VM.EVENT_NAME AS EVENT_NAME 
+             FROM VW_SEA_ALARM_CODE VM
+                  ) EVENT
+       WHERE OBJ.EVENT_SRC = SRC.EVENT_SRC_CODE(+) AND OBJ.EVENT_NO = EVENT.EVENT_CODE(+) 
+             AND OBJ.SUBSCRIBE_ID = #{id}
+</select>
+
+<!-- 查询事件来源-->
+<select id="queryEventSrc" parameterType="string" resultType="hashmap">
+	SELECT VW.EVENT_SRC_CODE, VW.EVENT_SRC_NAME FROM  sea.VW_EVENT_SRC VW
+</select>
+<!-- 查询异常事件 -->
+<select id="queryExceptEvent" parameterType="string" resultType="hashmap">
+	 SELECT VM.EVENT_NO AS EVENT_CODE ,
+	 VM.EVENT_NAME AS EVENT_NAME 
+	  FROM VW_SEA_ALARM_CODE VM
+</select>
+<!-- 查询所有短信模板 -->
+<select id="queryAllMsgTemplate" parameterType="string" resultType="hashmap">
+		SELECT S.SEND_TYPE_CODE, S.TEMPLATE_NAME, S.TEMPLATE_CONTENT
+			  FROM sea.W_SMS_SEND_TEMPLATE S
+			 ORDER BY S.SEND_TYPE_CODE
+</select>
+
+<!--查询自定义联系人-->
+<select id="querySelfDeContact" parameterType="string" resultType="hashmap">
+	  		SELECT * FROM W_SMS_CALLING_CARD W WHERE 1 = 1 
+  		<if test="map.staffNo != null and map.staffNo !='' ">
+				AND W.STAFF_NO = #{map.staffNo}
+		</if>	
+		<if test="map.orgName != null and map.orgName !='' ">
+				AND W.ORG_NAME LIKE '%${map.orgName}%'
+		</if>	   
+		<if test="map.personnelName != null and map.personnelName !='' ">
+		    	AND W.PERSONNEL_NAME LIKE '%${map.personnelName}%'  
+		</if>	
+		<if test="map.mobileNo != null and map.mobileNo !='' ">
+		    	AND W.MOBILE_NO LIKE '%${map.mobileNo}%'  
+		</if>
+</select>
+<!--检查所选事件是否已存在于订阅中-->
+<select id ="checkEventNo" parameterType="string" resultType="hashmap">
+SELECT EE.EVENT_NAME
+     FROM W_SMS_SUBSCRIBE_OBJ W,
+             (
+             SELECT VM.EVENT_NO AS EVENT_CODE ,
+             VM.EVENT_NAME AS EVENT_NAME  
+             FROM VW_SEA_ALARM_CODE VM
+               ) EE
+      WHERE EE.EVENT_CODE = W.EVENT_NO
+       AND W.SUBSCRIBE_ID = #{map.id}
+      AND W.EVENT_NO IN(
+      <if test="map.paramList != '' and map.paramList != null">
+      	#{map.paramList}
+      </if>
+	)
+</select>
+<!-- 取事件配置Id-->
+<select id= "getSubscribeId"  parameterType="string"  resultType="String">
+   	SELECT S_W_SMS_SUBSCRIBE_OBJ.NEXTVAL  SUBSCRIBE_ID FROM DUAL
+</select >
+  
+ <!-- 取短信订阅Id-->
+<select id= "getRecordId"  parameterType="string"  resultType="String">
+   		SELECT S_W_SMS_SUBSCRIBE.NEXTVAL RECORD_ID FROM DUAL
+</select >
+
+<!--保存短信-->
+<insert id= "saveOrUpdateSmsSubScribeObj"  parameterType="hashmap" >
+	MERGE INTO W_SMS_SUBSCRIBE_OBJ W
+			USING (SELECT '${map.subscribeId}' SUBSCRIBE_ID, '${map.EVENT_NO}' EVENT_NO FROM DUAL) TAB
+			ON (W.SUBSCRIBE_ID = TAB.SUBSCRIBE_ID AND W.EVENT_NO = TAB.EVENT_NO)
+			WHEN MATCHED THEN
+			  UPDATE
+			     SET W.RECORD_ID         =  '${map.recordId}',
+			         W.EVENT_SRC         = '${map.eventSrc}',
+			         W.STAFF_NO_ID       =  '${map.STAFF_NO_ID }',
+			         W.STAFF_TEMPLATE_ID =  '${map.STAFF_TEMPLATE_ID}',
+			         W.CONS_NO_ID        = '${map.CONS_NO_ID}',
+			         W.CONS_TEMPLATE_ID  =  '${map.CONS_TEMPLATE_ID}',
+			         W.DEFINE_USER_ID    = '${map.DEFINE_USER_ID}' ,
+			         W.DEF_TEMPLATE_ID   =  '${map.DEF_TEMPLATE_ID}'
+			WHEN NOT MATCHED THEN 
+			  INSERT 
+			    (RECORD_ID,
+			     SUBSCRIBE_ID, 
+			     EVENT_NO, 
+			     EVENT_SRC, 
+			     STAFF_NO_ID, 
+			     STAFF_TEMPLATE_ID, 
+			     CONS_NO_ID, 
+			     CONS_TEMPLATE_ID,
+			     DEFINE_USER_ID,
+			     DEF_TEMPLATE_ID)
+			  VALUES
+			    ('${map.recordId}', '${map.subscribeId}', '${map.EVENT_NO}', '${map.eventSrc}', 
+			    '${map.STAFF_NO_ID}', '${map.STAFF_TEMPLATE_ID}', '${map.CONS_NO_ID}', '${map.CONS_TEMPLATE_ID}',
+			    '${map.DEFINE_USER_ID}', '${map.DEF_TEMPLATE_ID}')
+   </insert > 
+ <!--保存事件指定联系人信息-->
+   <insert id= "saveSmsSendObj"  parameterType="hashmap" >
+   	INSERT INTO W_SMS_SEND_OBJ
+			  (RECORD_ID, SUBSCRIBE_ID, EVENT_NO, OBJ_TYPE, SUBS_OBJ_ID) 
+			VALUES 
+			  (S_W_SMS_SEND_OBJ.NEXTVAL,'${map.recordId}','${map.EVENT_NO}', '1', '${map.consNo}') 
+			 <!-- (S_W_SMS_SEND_OBJ.NEXTVAL,'${map.SUBSCRIBE_ID}','${map.EVENT_NO}', '1', '${map.consNo}') -->
+   	</insert >                          
+  <!-- 保存短信订阅信息
+<insert id= "saveSmsSubScribe"  parameterType="hashmap" >
+   		INSERT INTO W_SMS_SUBSCRIBE
+			  (SUBSCRIBE_ID, 
+			   ORG_NO, 
+			   SUBSCRIBE_NAME, 
+			   SUBS_TYPE_CODE, 
+			   SEND_USER_LIMIT, 
+			   START_DATE, 
+			   END_DATE, 
+			   SEND_TIME_S, 
+			   SEND_TIME_E, 
+			   STAFF_NO, 
+			   CREATE_DATE, 
+			   IS_VALID) 
+			VALUES 
+			  ('${map.recordId}', 
+			   '${map.orgNo}', 
+			   '${map.subscribeName}', 
+			   '${map.subsTypeCode}', 
+			   '${map.sendUserLimit}', 
+			   TO_DATE('${map.startDate}','yyyy-mm-dd'), 
+			   TO_DATE('${map.endDate}','yyyy-mm-dd'), 
+			   '${map.sendTimeS}', 
+			   '${map.sendTimeE}', 
+			   '${map.staffNo}', 
+			   SYSDATE, 
+			   '1')
+   </insert > 	-->
+   <!--1.订阅对象删除-->
+ <delete id="deleteSmsScribeObj" parameterType="string">
+    	DELETE W_SMS_SUBSCRIBE_OBJ OBJ WHERE OBJ.RECORD_ID = #{recordId}
+</delete>
+      <!--2.订阅对象删除-->
+  <delete id="deleteSmsSendObj" parameterType="string">
+    	DELETE W_SMS_SEND_OBJ W WHERE W.SUBSCRIBE_ID = #{subscribeId}
+  </delete>
+ <!--查询指定发送用户-->
+ <select id="querySmsSendObj" parameterType="string"  resultType="hashmap">
+ 	SELECT 
+             OBJ.SUBSCRIBE_ID AS CONS_NO, 
+ 			 CONS.ORG_NO,
+             O.ORG_NAME,
+             CONS.CONS_NAME, 
+             CONS.ELEC_ADDR, 
+             LINE.LINE_NAME, 
+            TG.TG_NAME, 
+             CONS.MR_SECT_NO, 
+             CONS.RUN_CAP 
+        from sea_C_CONS   CONS, 
+             sea_O_ORG    O, 
+             sea_G_LINE   LINE, 
+             sea_G_TG     TG,
+  		     W_SMS_SEND_OBJ   OBJ
+			 WHERE CONS.ORG_NO = O.ORG_NO(+) 
+			   AND CONS.LINE_ID = LINE.LINE_ID(+) 
+			   AND CONS.TG_ID = TG.TG_ID(+)
+			   AND OBJ.SUBS_OBJ_ID = CONS.CONS_NO(+)
+		     AND OBJ.SUBSCRIBE_ID = #{id}
+		     <!-- AND OBJ.RECORD_ID=#{id}-->
+		     ORDER BY CONS_NO
+ </select>
+ <!--查询主站联系人-->
+   <select id= "queryStatContact"   parameterType="string"  resultType="hashmap">
+   		    SELECT W.ORG_NO,
+			       O.ORG_NAME, 
+			       W.STAFF_NO, 
+			       W.NAME U_NAME, 
+			       W.MOBILE_NO, 
+			       D.NAME D_NAME
+			  FROM sea_P_SYS_USER W, SEA_O_ORG O, sea.O_DEPT D
+			 WHERE W.ORG_NO = O.ORG_NO(+) 
+			   AND W.DEPT_NO = D.DEPT_NO(+) 
+		<if test="map.orgName != null and map.orgName !='' ">
+				AND O.ORG_NAME LIKE '%${map.orgName}%'
+		</if>	   
+		<if test="map.personnelName != null and map.personnelName !='' ">
+		    	AND W.NAME LIKE '%${map.personnelName}%'  
+		</if>	
+		<if test="map.mobileNo != null and map.mobileNo !='' ">
+		    	AND W.MOBILE_NO LIKE '%${map.mobileNo}%'  
+		</if>	
+  </select > 
+ <!--查询用户联系人-->
+ <select id="queryConsContact" parameterType="string" resultType="hashmap">
+ 	SELECT CONS.ORG_NO,
+			       O.ORG_NAME, 
+			       CONS.CONS_NO, 
+			       CONS.CONS_NAME, 
+			       CONS.ELEC_ADDR, 
+			       LINE.LINE_NAME, 
+			       TG.TG_NAME, 
+			       CONS.MR_SECT_NO, 
+			       CONS.RUN_CAP 
+			  FROM SEA_C_CONS      CONS, 
+			       SEA_O_ORG       O, 
+			       SEA_G_LINE      LINE, 
+			       SEA_G_TG        TG
+			 WHERE CONS.ORG_NO = O.ORG_NO(+) 
+			   AND CONS.LINE_ID = LINE.LINE_ID(+) 
+			   AND CONS.TG_ID = TG.TG_ID(+)
+		<if test="map.tgName != null and map.tgName !='' ">	
+			   AND TG.TG_NAME LIKE '%${map.tgName}%'
+		</if>
+		<if test="map.mrSectNo != null and map.mrSectNo !='' ">	
+			   AND CONS.MR_SECT_NO LIKE '%${map.mrSectNo}%'
+		</if> 
+		<if test="map.consNo != null and map.consNo !='' ">	
+			   AND CONS.CONS_NO LIKE '%${map.consNo}%'
+		</if>
+		<if test="map.consName != null and map.consName !='' ">	   
+			   AND CONS.CONS_NAME  LIKE  '%${map.consName}%'
+		</if>
+		ORDER BY CONS.CONS_NO
+ </select>
+ <!---->
+ <delete id="deleteSmsSendObjByEventNo" parameterType="string">
+ 	DELETE W_SMS_SEND_OBJ O WHERE O.SUBSCRIBE_ID = 
+ 	(SELECT W.RECORD_ID FROM W_SMS_SUBSCRIBE_OBJ W 
+ 		WHERE W.SUBSCRIBE_ID=#{map.SUBSCRIBE_ID} 
+ 				AND W.EVENT_NO IN(#{map.EVENT_NO})
+ 	)
+ </delete>
+</mapper>	

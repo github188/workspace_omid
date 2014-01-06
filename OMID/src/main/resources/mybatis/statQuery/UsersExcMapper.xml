@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.statQuery.mapper.UsersExcMapper">
+
+  <cache />
+  
+  <select id="queryUsers" useCache="false" resultType="java.util.HashMap"> 
+select a.*, c.terminal_addr, c.TMNL_ASSET_NO, d.ASSET_NO, e.cons_sort_name,f.org_name
+  from (select scc.org_no, scc.cons_no, scc.elec_addr,scc.cons_name, scc.cons_sort_code
+          from sea_c_cons scc where 1=1
+          
+   <if test="map.cons_no != null and map.cons_no != ''">
+   		and instr(scc.cons_no, #{map.cons_no}) > 0
+   </if>
+   <if test="map.cons_name != null and map.cons_name != ''">
+   		and instr(scc.cons_name, #{map.cons_name}) > 0
+   </if>
+   <if test="map.cons_sort_code != null and map.cons_sort_code != ''">
+   		and scc.cons_sort_code=#{map.cons_sort_code}
+   </if>
+   <if test="map.elec_addr != null and map.elec_addr != ''">
+   		and instr(scc.elec_addr, #{map.elec_addr}) > 0
+   </if>
+   ) a,
+       (select aaa.cons_no, aaa.terminal_id, aaa.meter_id
+          from a_alarm_analyse aaa where 1=1
+   <if test="map.cons_no != null and map.cons_no != ''">
+   		and instr(aaa.cons_no, #{map.cons_no}) > 0
+   </if> 
+   union all
+        select ate.cons_no, ate.terminal_id, null meter_id
+          from a_tmnl_exception ate where 1=1
+   <if test="map.cons_no != null and map.cons_no != ''">
+   		and instr(ate.cons_no, #{map.cons_no}) > 0
+   </if>
+   ) b,
+       (select srtr.terminal_addr, srtr.TERMINAL_ID, srtr.TMNL_ASSET_NO
+          from SEA_R_TMNL_RUN srtr where 1=1  
+  <if test="map.terminal_addr != null and map.terminal_addr != ''">
+   		and instr(srtr.terminal_addr, #{map.terminal_addr}) > 0
+   </if>  
+   ) c,
+       (select sdm.METER_ID, sdm.asset_no from SEA_D_METER sdm where 1=1 
+    <if test="map.asset_no != null and map.asset_no != ''">
+   		and instr(sdm.asset_no, #{map.asset_no}) > 0
+   </if>      
+   ) d,
+       vw_cons_sort e,
+       sea_o_org f
+ where a.cons_no = b.cons_no
+   and b.terminal_id = c.terminal_id
+   and b.meter_id = d.meter_id
+   and a.cons_sort_code = e.cons_sort
+   and a.org_no=f.org_no
+  </select>
+  <select id="queryStatistics" parameterType="hashmap" resultType="java.util.HashMap">
+  	with sb as
+	 (select aaa.alarm_type, aaa.alarm_id
+	    from a_alarm_analyse aaa
+	    where aaa.cons_no=#{cons_no}
+	    union all
+	  select '03' alarm_type, ate.tmnl_exception_id alarm_id
+	    from a_tmnl_exception ate where ate.cons_no =#{cons_no}
+	    )
+	select   count(1) as value, sc.except_type_name as name,sb.alarm_type
+	  from sb, vw_except_type sc
+	 where sb.alarm_type = sc.except_type
+	 group by sb.alarm_type,  sc.except_type_name
+	union all
+	select count(1) as value, '待办事项' as name,'04' alarm_type
+	  from f_await_alarm f, sb
+	 where f.alarm_id = sb.alarm_id
+	union all
+	select count(1) value, '异常处理' name,'05' alarm_type
+	  from f_await_alarm f, sb
+	 where f.alarm_id = sb.alarm_id and f.status_code in (0, 1)
+	union all
+	select count(1) value, '处理超期' name, '06' alarm_type
+	  from(
+	select(trunc(sysdate, 'dd') - trunc(a.await_date, 'dd')) as alldate,(
+	SELECT MAX(param_item_val)
+	  FROM b_sys_parameter
+	 WHERE param_no = 'EVENT_LEVEL' AND param_item_no = a.event_level) qixiaN
+	  from f_await_alarm a, sb
+	 where a.status_code in (0, 1) and a.event_level in ('01', '02', '03', '04') and a.alarm_id = sb.alarm_id) t
+	 where t.alldate > t.qixian
+	 order by alarm_type
+  </select>
+  <select id="queryTmnlExc" parameterType="hashmap" resultType="java.util.HashMap">
+  	
+select a.*,b.event_name,c.event_level_name,d.terminal_addr from (
+select   ate.terminal_id,
+       ate.tmnl_exception_id,
+       ate.org_no,
+       ate.cons_no,
+       to_char(ate.first_happen_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+       to_char(ate.happen_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+       ate.alarm_cnt,
+       to_char(ate.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+       to_char(ate.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+       ate.resume_day_cnt,
+       ate.except_code,
+       ate.type_code,
+       ate.event_level,
+       ate.except_src,
+       ate.flow_status_code,
+       ate.flow_status_detail,
+       ate.flow_flag,
+       ate.handle_org_no,
+       ate.HANDLER_STAFF_NO handle_staff_no,
+       to_char(ate.handle_date, 'yyyy-mm-dd hh24:mi:ss') handle_date,
+       ate.manage_type
+       from a_tmnl_exception ate where ate.cons_no=#{cons_no})a,
+       VW_SEA_ALARM_CODE b,
+       vw_event_level c,
+       sea_r_tmnl_run d
+       where a.except_code=b.event_no(+)
+       and a.event_level=c.event_level(+)
+       and a.terminal_id=d.terminal_id(+)
+  </select>
+  <select id="queryMeterExc" parameterType="hashmap" resultType="java.util.HashMap">
+  	 select a.*,b.event_name,c.event_level_name,d.terminal_addr,e.asset_no,f.except_type_name from (select aaa.terminal_id,aaa.alarm_id,aaa.alarm_type,aaa.org_no,aaa.cons_no,aaa.meter_id,aaa.alarm_code except_code,
+				aaa.alarm_src except_src,aaa.alarm_cnt,aaa.event_level,aaa.resume_day_cnt,
+				  to_char(aaa.first_alarm_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+				   to_char(aaa.alarm_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+				   to_char(aaa.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+				   to_char(aaa.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+				   aaa.handle_org_no,
+				   aaa.handle_staff_no handle_staff_no,
+				   aaa.flow_flag,
+				   aaa.flow_status_code
+				 from a_alarm_analyse aaa where aaa.cons_no=#{cons_no})a,
+         VW_SEA_ALARM_CODE b,
+         vw_event_level c,
+         sea_r_tmnl_run d,
+         sea_d_meter e,
+         vw_except_type f
+          where a.except_code=b.event_no
+       and a.event_level=c.event_level(+)
+       and a.terminal_id=d.terminal_id(+)
+       and a.meter_id=e.meter_id(+)
+       and a.alarm_type=f.except_type(+)
+  </select>
+  <select id="queryHisExc" parameterType="hashmap" resultType="java.util.HashMap">
+  	<choose>
+  		<when test="event_type=='03'">
+  			select a.*,b.event_name,c.event_level_name,d.terminal_addr from (
+select ate.terminal_id,
+       ate.tmnl_exception_id,
+       ate.org_no,
+       ate.cons_no,
+       to_char(ate.first_happen_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+       to_char(ate.happen_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+       ate.alarm_cnt,
+       to_char(ate.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+       to_char(ate.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+       ate.resume_day_cnt,
+       ate.except_code,
+       ate.type_code,
+       ate.event_level,
+       ate.except_src,
+       ate.flow_status_code,
+       ate.flow_status_detail,
+       ate.flow_flag,
+       to_char(ate.handle_date, 'yyyy-mm-dd hh24:mi:ss') handle_date,
+       ate.manage_type
+       from a_tmnl_exception_his ate where ate.cons_no=#{cons_no})a,
+       VW_SEA_ALARM_CODE b,
+       vw_event_level c,
+       sea_r_tmnl_run d
+       where a.except_code=b.event_no(+)
+       and a.event_level=c.event_level(+)
+       and a.terminal_id=d.terminal_id(+)
+  		</when>
+  		<otherwise>
+  			select a.*,b.event_name,c.event_level_name,d.terminal_addr,e.asset_no from (select aaa.terminal_id,aaa.alarm_id,aaa.alarm_type,aaa.org_no,aaa.cons_no,aaa.meter_id,aaa.alarm_code except_code,
+				aaa.alarm_src except_src,aaa.alarm_cnt,aaa.event_level,aaa.resume_day_cnt,
+				  to_char(aaa.first_alarm_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+				   to_char(aaa.alarm_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+				   to_char(aaa.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+				   to_char(aaa.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+				   aaa.handle_org_no,
+				   aaa.handle_staff_no handle_staff_no,
+				   aaa.flow_flag,
+				   aaa.flow_status_code
+				 from a_alarm_analyse_his aaa where aaa.cons_no=#{cons_no} and aaa.alarm_type=#{event_type})a,
+         VW_SEA_ALARM_CODE b,
+         vw_event_level c,
+         sea_r_tmnl_run d,
+         sea_d_meter e
+          where a.except_code=b.event_no(+)
+       and a.event_level=c.event_level(+)
+       and a.terminal_id=d.terminal_id(+)
+       and a.meter_id=e.meter_id(+)
+  		</otherwise>
+  	</choose>
+  </select>
+ 
+</mapper>

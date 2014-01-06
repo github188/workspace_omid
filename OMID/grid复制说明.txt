@@ -1,0 +1,22 @@
+在创建grid时添加属性
+features : [selectFeature]
+
+Ext.create('Ext.grid.Panel', {
+	title : 'Simpsons',
+	store : Ext.data.StoreManager.lookup('simpsonsStore'),
+	features : [selectFeature], 
+	columns : [{
+				header : 'Name',
+				dataIndex : 'name'
+			}, {
+				header : 'Email',
+				dataIndex : 'email',
+				flex : 1
+			}, {
+				header : 'Phone',
+				dataIndex : 'phone'
+			}],
+	height : 200,
+	width : 400,
+	renderTo : Ext.getBody()
+});

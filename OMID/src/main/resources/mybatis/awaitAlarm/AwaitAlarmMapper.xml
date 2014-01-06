@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.exceHand.mapper.AwaitAlarmMapper">
+
+	<cache />
+  
+	<select id="getAwaitAlarm" parameterType="hashmap" resultType="java.util.HashMap">
+		 select a.*, get_sys_param('EVENT_LEVEL', '', a.event_level) qixiaN
+  from (select a.*,
+               b.except_type_name,
+               c.AWAIT_STATUS_NAME,
+               d.event_level_name,
+               e.EXCEPT_SRC_NAME,
+               f.event_name
+          from (select t.*,
+                       g.alarm_cnt,
+                       to_char(g.first_alarm_date, 'yyyy-MM-dd') first_alarm_date,
+                       to_char(g.alarm_date, 'yyyy-MM-dd') alarm_date
+                  from f_await_alarm t, a_alarm_analyse g
+                 where t.alarm_id = g.alarm_id
+                   and t.alarm_type != '03'
+                union all
+                select t.*,
+                       h.alarm_cnt,
+                       to_char(h.first_happen_date, 'yyyy-MM-dd') first_alarm_date,
+                       to_char(h.happen_date, 'yyyy-MM-dd') alarm_date
+                  from f_await_alarm t, a_tmnl_exception h
+                 where t.alarm_id = h.tmnl_exception_id
+                   and t.alarm_type = '03') a,
+               vw_except_type b,
+               vw_await_status_code c,
+               vw_event_level d,
+               vw_sea_alarm_code f,
+               VW_EXCEPT_SRC e
+         where a.alarm_type = b.except_type
+           and a.status_code = c.AWAIT_STATUS_CODE
+           and a.event_level = d.event_level
+           and a.alarm_src = e.EXCEPT_SRC_CODE
+           and a.alarm_code = f.event_no
+           and a.status_code = '0') a
+ where 1 = 1
+ 	   <if test="alarm_type!=null">
+	 	    and  a.alarm_type= #{alarm_type}
+	   </if>
+ 	   <if test="status_code!=null">
+		    and  a.status_code = #{status_code}
+	   </if>
+ 	   <if test="event_level!=null">
+		    and a.event_level = #{event_level}
+	   </if>
+ 	   <if test="alarm_src!=null">
+		    and a.alarm_src = #{alarm_src}
+	   </if>
+	   <if test="minDate!=null and minDate!=''">
+		    and a.await_date      	<![CDATA[>=to_date(#{minDate},'yyyy-MM-dd') ]]>
+	   </if>
+	   	   <if test="maxDate!=null and maxDate!='' ">
+		    and a.await_date    <![CDATA[<=  to_date(#{maxDate},'yyyy-MM-dd')]]>
+	   </if>
+	    
+	   	 
+order by a.event_level
+ 	
+	</select>	
+	
+	
+	
+	
+	
+	
+	
+		<select id="getPageAwaitAlarm"  useCache="false"  resultType="java.util.HashMap">
+ select a.*, get_sys_param('EVENT_LEVEL', '', a.event_level) qixiaN
+  from (select a.*,
+               b.except_type_name,
+               c.AWAIT_STATUS_NAME,
+               d.event_level_name,
+               e.EXCEPT_SRC_NAME,
+               f.event_name,
+               i.terminal_addr,
+               j.cons_name,
+               j.cons_type,
+               k.cons_sort_name ,
+               l.org_name
+          from (select t.*,
+                       g.alarm_cnt,
+                       to_char(g.first_alarm_date, 'yyyy-MM-dd') first_alarm_date,
+                       to_char(g.alarm_date, 'yyyy-MM-dd') alarm_date,
+                       g.cons_no,
+                       g.terminal_id
+                  from f_await_alarm t, a_alarm_analyse g
+                 where t.alarm_id = g.alarm_id
+                   and t.alarm_type != '03'
+                   and g.flow_status_code =1
+    <if test="map.minDate!=null and map.minDate!=''">
+        and g.alarm_date    <![CDATA[>=to_date(#{map.minDate},'yyyy-MM-dd') ]]>
+     </if>
+     <if test="map.maxDate!=null and map.maxDate!='' ">
+        and g.alarm_date   <![CDATA[<=  to_date(#{map.maxDate},'yyyy-MM-dd')]]>
+     </if>
+                union all
+                select t.*,
+                       h.alarm_cnt,
+                       to_char(h.first_happen_date, 'yyyy-MM-dd') first_alarm_date,
+                       to_char(h.happen_date, 'yyyy-MM-dd') alarm_date,
+                       h.cons_no,
+                       h.terminal_id
+                  from f_await_alarm t, a_tmnl_exception h
+                 where t.alarm_id = h.tmnl_exception_id
+                   and t.alarm_type = '03'
+                   and h.flow_status_code =1
+         <if test="map.minDate!=null and map.minDate!=''">
+        and h.happen_date    <![CDATA[>=to_date(#{map.minDate},'yyyy-MM-dd') ]]>
+     </if>
+     <if test="map.maxDate!=null and map.maxDate!='' ">
+        and h.happen_date   <![CDATA[<=  to_date(#{map.maxDate},'yyyy-MM-dd')]]>
+     </if>
+                ) a,
+               vw_except_type b,
+               vw_await_status_code c,
+               vw_event_level d,
+               vw_sea_alarm_code f,
+               VW_EXCEPT_SRC e,
+               sea_r_tmnl_run i,
+               sea_c_cons j,
+               vw_cons_sort k ,
+               sea_o_org         l
+         where a.alarm_type = b.except_type
+           and a.status_code = c.AWAIT_STATUS_CODE
+           and a.event_level = d.event_level
+           and a.alarm_src = e.EXCEPT_SRC_CODE
+           and a.alarm_code = f.event_no
+           and a.status_code = '0'
+           and i.terminal_id = a.terminal_id
+           and j.cons_no = a.cons_no
+           and j.cons_type = k.cons_sort
+           and a.org_no=l.org_no
+ 
+        <if test="map.tmnl_addr != null and map.tmnl_addr!= ''">
+   		and i.terminal_addr like '%${map.tmnl_addr}%'
+      	</if>
+	   <if test="map.user_name != null and map.user_name!= ''">
+   		and j.cons_name like '%${map.user_name}%'
+      	</if>
+      	 <if test="map.user_code != null and map.user_code!= ''">
+   		and  a.cons_no like '%${map.user_code}%'
+      	</if>
+           ) a
+ where 1 = 1
+ 	   <if test="map.alarm_type!=null and map.alarm_type!=''">
+	 	    and  a.alarm_type= #{map.alarm_type}
+	   </if>
+ 	   <if test="map.status_code!=null and map.status_code!=''">
+		    and  a.status_code = #{map.status_code}
+	   </if>
+ 	   <if test="map.event_level!=null and map.event_level!=''">
+		    and a.event_level = #{map.event_level}
+	   </if>
+ 	   <if test="map.alarm_src!=null and map.alarm_src!=''">
+		    and a.alarm_src = #{map.alarm_src}
+	   </if>
+	   	     and exists
+                 (select 1
+                  from (select t.org_no
+                          from sea_o_org t
+                         start with t.org_no = #{map.org_no}
+                        connect by prior t.org_no = t.p_org_no)b  where b.org_no=a.org_no  )
+		 order by a.event_level,a.alarm_date desc
+ 	
+	</select>	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<select id="getExceptSRC" resultType="java.util.HashMap">
+		 select * from  VW_EXCEPT_SRC
+	</select>	
+	
+			
+	<update id="Process"  >
+		UPDATE  f_await_alarm
+		SET  status_code =  #{map.status_code}  
+		   <if test="map.TASK_ID!=null and map.TASK_ID!=''">
+		     ,task_id=#{map.TASK_ID}
+	   </if>
+ 	   <if test="map.start_task_time!=null and map.start_task_time!=''">
+		    ,start_task_time=sysdate
+	   </if> 
+		WHERE  await_item_id  =  #{map.AWAIT_ITEM_ID}
+	</update>
+	
+	
+	
+    <select id="getAlarmone" resultType="java.util.HashMap"  parameterType="hashmap" >
+		select * from a_alarm_analyse t where t.alarm_id= #{alarm_id}
+	</select>	
+	
+	
+   <select id="getExceptone" resultType="java.util.HashMap"  parameterType="hashmap" >
+		 select * from a_tmnl_exception t where t.tmnl_exception_id = #{alarm_id}
+	</select>	
+	
+   <select id="getAwaitAlarmone" resultType="java.util.HashMap"  parameterType="hashmap" >
+		select * from f_await_alarm t where t.await_item_id= #{alarm_id}
+	</select>	
+    <select id="getftaskAlarmRela" resultType="java.util.HashMap"  parameterType="hashmap" >
+		select * from f_task_alarm_rela t where t.alarm_id= #{alarm_id}
+	</select>	
+	<select id="getAwaitAlarmrelaonebytm" resultType="java.util.HashMap"  parameterType="hashmap" >
+		select * from f_task_alarm_rela t where  t.terminal_id=#{terminal_id} and t.meter_id=#{meter_id}
+	</select>	
+	
+	<insert id="insertFtaskFlow" parameterType="hashmap"  >
+		insert into f_task_flow
+  			(task_id,   alarm_src,   create_type,   start_time,   flow_status_code,   flow_flag,PRE_CLOSE_TIME,FROM_TASK_DES,SEND_SFAFF_NO,SEND_ORG_NO,CLOSE_ORG_NO,CLOSE_SFAFF_NO,task_level)
+		values
+  			(#{task_id}, 1, 2, sysdate, 1, #{flow_flag},to_date(#{plan_date},'yyyy-MM-dd'),#{more_info},#{SEND_SFAFF_NO},#{SEND_ORG_NO},#{CLOSE_ORG_NO},#{rev_staff},#{TASK_LEVEL})
+
+	</insert>
+   <insert id="insertFtaskAlarmRela" parameterType="hashmap"  >
+		insert into f_task_alarm_rela(task_id, alarm_type, alarm_id, terminal_id, meter_id)
+		 values
+       (#{TASK_ID}, #{ALARM_TYPE}, #{ALARM_ID}, #{TERMINAL_ID}, #{METER_ID})
+	</insert>
+	
+	<select id="queryTmnlAlarm" resultType="java.util.HashMap"  parameterType="hashmap" >
+			select a.*,
+		       b.except_type_name,
+		       c.AWAIT_STATUS_NAME,
+		       d.event_level_name,
+		       e.EXCEPT_SRC_NAME,
+		       f.event_name,
+		       i.terminal_addr,
+               j.cons_name
+		  from (select t.*, g.alarm_cnt, g.cons_no, g.terminal_id, g.meter_id
+		          from f_await_alarm t, a_alarm_analyse g
+		         where t.alarm_id = g.alarm_id
+		           and t.alarm_type != '03'
+		        union all
+		        select t.*, h.alarm_cnt, h.cons_no, h.terminal_id, null meter_id
+		          from f_await_alarm t, a_tmnl_exception h
+		         where t.alarm_id = h.tmnl_exception_id
+		           and t.alarm_type = '03') a,
+		       vw_except_type b,
+		       vw_await_status_code c,
+		       vw_event_level d,
+		       vw_sea_alarm_code f,
+		       VW_EXCEPT_SRC e,
+		       sea_r_tmnl_run i,
+               sea_c_cons j
+		 where a.alarm_type = b.except_type
+		   and a.status_code = c.AWAIT_STATUS_CODE
+		   and a.event_level = d.event_level
+		   and a.alarm_src = e.EXCEPT_SRC_CODE
+		   and a.alarm_code = f.event_no
+		   and a.status_code = '0'
+		   and i.terminal_id = a.terminal_id
+           and j.cons_no = a.cons_no
+		   and a.terminal_id = #{tmnl_id}
+	</select>
+	
+	<insert id="insertFtaskFlowEX" parameterType="hashmap"  >
+		insert into f_task_flow
+  			(task_id,   alarm_src,   create_type,   start_time,   flow_status_code,   flow_flag,FROM_TASK_DES,SEND_SFAFF_NO,SEND_ORG_NO,CLOSE_ORG_NO,CLOSE_SFAFF_NO,task_level)
+		values
+  			(#{task_id}, 1, 2, sysdate, #{flow_status_code}, #{flow_flag},#{more_info},#{SEND_SFAFF_NO},#{SEND_ORG_NO},#{CLOSE_ORG_NO},#{CLOSE_SFAFF_NO},#{TASK_LEVEL})
+ 
+	</insert>
+	<select id="getAlarmThings"  useCache="false"  resultType="java.util.HashMap">
+ select a.*,
+       d.org_name         send_org_name,
+       e.name             send_staff_name,
+       b.CREATE_TYPE_NAME,
+       c.EXCEPT_SRC_NAME,
+       f.FLOW_STATUS_NAME,
+       get_sys_param('EVENT_LEVEL', '', a.task_level) qixiaN
+  from (select tmp.alarm_src,
+               tmp.task_no,
+               tmp.task_id,
+               tmp.create_type,
+               tmp.send_org_no,
+               tmp.send_sfaff_no,
+               to_char(tmp.start_time, 'yyyy-mm-dd') start_time,
+               tmp.CLOSE_ORG_NO,
+               tmp.CLOSE_SFAFF_NO,
+               to_char(tmp.PRE_CLOSE_TIME, 'yyyy-mm-dd') PRE_CLOSE_TIME,
+               tmp.FLOW_STATUS_CODE,
+               tmp.FLOW_STATUS_DETAIL,
+               tmp.FLOW_FLAG,
+               tmp.APP_NO,
+               tmp.MANAGE_TYPE,
+               tmp.task_level
+          from f_task_flow tmp
+         where FLOW_STATUS_CODE in ('0', '1', '2', '3')) a,
+       vw_create_type_code b,
+       vw_except_src c,
+       sea_o_org d,
+       sea_p_sys_user e,
+       vw_flow_status_code f
+ where a.create_type = b.CREATE_TYPE_CODE(+)
+   and a.alarm_src = c.EXCEPT_SRC_CODE(+)
+   and a.send_org_no = d.org_no(+)
+   and a.send_sfaff_no = e.staff_no(+)
+   and a.flow_status_code = f.flow_status_code(+)
+   and  a.close_sfaff_no=#{map.userNo}
+	</select>
+	
+	<select id="getAlarmDetail"  useCache="false" resultType="hashmap">
+with rela as
+ (select * from f_task_alarm_rela where task_id = #{map.TASK_ID}) 
+select tmp.*,
+       vel.event_level_name,
+       vet.except_type_name,
+       vsac.event_name,
+       soo.org_name
+  from (select a.tmnl_exception_id alarm_id,
+               a.org_no,
+               b.terminal_addr,
+               b.tmnl_asset_no asset_no,
+               rela.alarm_type,
+               to_char(a.first_happen_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+               a.event_level,
+               a.except_code alarm_code,
+               a.alarm_cnt,
+               a.cons_no,
+               a.terminal_id,
+               0  meter_id
+          from a_tmnl_exception a, sea_r_tmnl_run b, rela
+         where rela.alarm_id = a.tmnl_exception_id(+)
+           and a.terminal_id = b.terminal_id
+           and rela.alarm_type = '03'
+        union all
+        select aaa.alarm_id,
+               aaa.org_no,
+               srtr.terminal_addr,
+               scm.asset_no,
+               rela.alarm_type,
+               to_char(aaa.first_alarm_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+               aaa.event_level,
+               aaa.alarm_code alarm_code,
+               aaa.alarm_cnt,
+               aaa.cons_no,
+               aaa.terminal_id,
+               aaa.meter_id
+          from a_alarm_analyse aaa,
+               sea_c_meter     scm,
+               sea_r_tmnl_run  srtr,
+               rela
+         where aaa.meter_id = scm.meter_id
+           and aaa.terminal_id = srtr.terminal_id
+           and rela.alarm_id = aaa.alarm_id(+)
+           and rela.alarm_type in ('01', '02')) tmp,
+       vw_event_level vel,
+       vw_except_type vet,
+       vw_sea_alarm_code vsac,
+       sea_o_org soo
+ where tmp.event_level = vel.event_level(+)
+   and tmp.alarm_type = vet.except_type(+)
+   and tmp.alarm_code = vsac.event_no(+)
+   and tmp.org_no = soo.org_no(+)
+
+ 
+ 
+	</select>
+	<update id="modifyFlowStatus">
+			UPDATE  F_TASK_FLOW
+			SET  FLOW_STATUS_CODE =  #{FLOW_STATUS}  
+		   <if test="END_TASK_DES!=null and END_TASK_DES!=''">
+			     ,END_TASK_DES=#{END_TASK_DES}
+		   </if>
+		     <if test="MANAGE_TYPE!=null and MANAGE_TYPE!=''">
+			     ,MANAGE_TYPE=#{MANAGE_TYPE}
+		   </if>
+		     <if test="FLOW_STATUS_DETAIL!=null and FLOW_STATUS_DETAIL!=''">
+			     ,FLOW_STATUS_DETAIL=#{FLOW_STATUS_DETAIL}
+		   </if>
+		    <if test="CLOSE_ORG_NO!=null and CLOSE_ORG_NO!=''">
+			     ,CLOSE_ORG_NO=#{CLOSE_ORG_NO}
+		   </if>
+		        <if test="CLOSE_SFAFF_NO!=null and CLOSE_SFAFF_NO!=''">
+			     ,CLOSE_SFAFF_NO=#{CLOSE_SFAFF_NO}
+		   </if>
+		        <if test="CLOSE_TIME!=null and CLOSE_TIME!=''">
+			     ,CLOSE_TIME=sysdate
+		   </if>
+		   <if test="FLOW_FLAG!=null and FLOW_FLAG!=''">
+			     ,FLOW_FLAG=#{FLOW_FLAG}
+		   </if>
+		   	   <if test="FURTHER_CHARGE!=null and FURTHER_CHARGE!=''">
+			     ,FURTHER_CHARGE=#{FURTHER_CHARGE}
+		   </if>
+		   	   <if test="FURTHER_ENGER!=null and FURTHER_ENGER!=''">
+			     ,FURTHER_ENGER=#{FURTHER_ENGER}
+		   </if>
+		   	   <if test="DEFAULT_CHARGE!=null and DEFAULT_CHARGE!=''">
+			     ,DEFAULT_CHARGE=#{DEFAULT_CHARGE}
+		   </if>
+			WHERE  TASK_ID  =  #{TASK_ID}
+	</update>
+	
+	
+	
+		<update id="updateAtmnlException">
+			UPDATE  A_TMNL_EXCEPTION
+			SET  FLOW_STATUS_CODE =  #{FLOW_STATUS_CODE} 
+			     ,HANDLE_DATE=sysdate
+		   <if test="FLOW_STATUS_DETAIL!=null and FLOW_STATUS_DETAIL!=''">
+			     ,FLOW_STATUS_DETAIL=#{FLOW_STATUS_DETAIL}
+		   </if>
+		     <if test="FLOW_FLAG!=null and FLOW_FLAG!=''">
+			     ,FLOW_FLAG=#{FLOW_FLAG}
+		   </if>
+		     <if test="HANDLE_STAFF_NO!=null and HANDLE_STAFF_NO!=''">
+			     ,HANDLE_STAFF_NO=#{HANDLE_STAFF_NO}
+		   </if>
+		     <if test="HANDLE_ORG_NO!=null and HANDLE_ORG_NO!=''">
+			     ,HANDLE_ORG_NO=#{HANDLE_ORG_NO}
+		   </if>
+		    <if test="MANAGE_TYPE!=null and MANAGE_TYPE!=''">
+			     ,MANAGE_TYPE=#{MANAGE_TYPE}
+		   </if>
+			WHERE  TMNL_EXCEPTION_ID  =  #{ALARM_ID}
+	</update>
+	
+	
+    <update id="updateAalarmAnalyse">
+			UPDATE  A_ALARM_ANALYSE
+			SET  FLOW_STATUS_CODE =  #{FLOW_STATUS_CODE} 
+			     ,HANDLE_DATE=sysdate
+		   <if test="FLOW_STATUS_DETAIL!=null and FLOW_STATUS_DETAIL!=''">
+			     ,FLOW_STATUS_DETAIL=#{FLOW_STATUS_DETAIL}
+		   </if>
+		     <if test="FLOW_FLAG!=null and FLOW_FLAG!=''">
+			     ,FLOW_FLAG=#{FLOW_FLAG}
+		   </if>
+		     <if test="HANDLE_STAFF_NO!=null and HANDLE_STAFF_NO!=''">
+			     ,HANDLE_STAFF_NO=#{HANDLE_STAFF_NO}
+		   </if>
+		     <if test="HANDLE_ORG_NO!=null and HANDLE_ORG_NO!=''">
+			     ,HANDLE_ORG_NO=#{HANDLE_ORG_NO}
+		   </if>
+		    <if test="MANAGE_TYPE!=null and MANAGE_TYPE!=''">
+			     ,MANAGE_TYPE=#{MANAGE_TYPE}
+		   </if>
+			WHERE  ALARM_ID  =  #{ALARM_ID}
+	</update>
+		<select id="getTaskAlarmRelaByTaskId"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+			select  * from f_task_alarm_rela t where t.task_id= #{TASK_ID}
+		</select>
+	<select id="getUserListbyOrgNO"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+		SELECT P.STAFF_NO, P.NAME
+		  FROM SEA_P_SYS_USER P, P_ACCESS_ROLE AR
+		 WHERE P.STAFF_NO = AR.STAFF_NO
+		   AND AR.ROLE_ID = #{roleId}
+	</select>
+		
+		
+		
+		
+		
+		
+		<select id="getTGbyTaskId"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+			
+			
+				select a.*,e.org_name 
+  from sea_g_tg             a,
+       sea_r_tmnl_run       tmnl,
+       sea_r_cons_tmnl_rela ctr,
+       sea_c_cons           con,
+       f_task_flow          c,
+       f_task_alarm_rela    d,
+       sea_o_org e
+ WHERE tmnl.tmnl_asset_no = ctr.tmnl_asset_no
+   and c.task_id = d.task_id
+   and d.terminal_id = tmnl.terminal_id
+   AND con.cons_no = ctr.cons_no		
+   and con.tg_id = a.tg_id
+   and e.org_no=a.org_no
+		  and  c.task_id = #{task_id}
+		  
+	
+		</select>
+		
+		
+		
+		
+				<select id="getTaskDetailbyTaskId"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+ select a.*,
+       e.except_type_name,
+       f.event_name,
+       i.terminal_addr,
+       j.cons_name,
+       j.elec_addr,
+       cm.asset_no
+  from (select t.*,
+               kk.alarm_type,
+               g.alarm_code,
+               g.alarm_cnt,
+               g.cons_no,
+               g.terminal_id,
+              to_char( g.alarm_date,'yyyy-mm-dd')  alarm_date,
+               g.meter_id
+          from f_task_flow t, f_task_alarm_rela kk, a_alarm_analyse g
+         where kk.alarm_id = g.alarm_id
+           and t.task_id = kk.task_id
+           and kk.alarm_type != '03'
+        union all
+        select t.*,
+               kk.alarm_type,
+               h.except_code alarm_code,
+               h.alarm_cnt,
+               h.cons_no,
+               h.terminal_id,
+               to_char(h.happen_date,'yyyy-mm-dd')  alarm_date,
+               null          meter_id
+          from f_task_flow t, f_task_alarm_rela kk, a_tmnl_exception h
+         where kk.alarm_id = h.tmnl_exception_id
+           and t.task_id = kk.task_id
+           and kk.alarm_type = '03') a,
+       
+       vw_sea_alarm_code f,
+       vw_except_type    e,
+       sea_r_tmnl_run    i,
+       sea_c_cons        j,
+       sea_c_meter       cm
+ where a.alarm_type = e.except_type
+   and a.alarm_code = f.event_no
+   and i.terminal_id = a.terminal_id
+   and cm.meter_id = a.meter_id(+)
+   and j.cons_no = a.cons_no
+  and a.task_id = #{task_id}
+			 
+		</select>
+		
+				
+				<select id="getdoResultbyTaskId"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+	
+			 	 select b.org_name, c.name staff_name
+				  from f_task_flow a, sea_o_org b, sea_p_sys_user c
+				 where a.close_org_no = b.org_no
+				   and a.close_sfaff_no = c.staff_no				  
+			  		and a.task_id = #{task_id}
+		</select>
+		
+ <select id="findTaskLevel"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+		select max(a.event_level) as  task_level
+		  from (select t.*, g.alarm_cnt, g.cons_no, g.terminal_id, g.meter_id
+		          from f_await_alarm t, a_alarm_analyse g
+		         where t.alarm_id = g.alarm_id
+		           and t.alarm_type != '03'
+		        union all
+		        select t.*, h.alarm_cnt, h.cons_no, h.terminal_id, null meter_id
+		          from f_await_alarm t, a_tmnl_exception h
+		         where t.alarm_id = h.tmnl_exception_id
+		           and t.alarm_type = '03') a
+		 where a.terminal_id = #{terminal_id}
+</select>
+		
+		
+<insert id="modifyAlarmRemove"  parameterType="hashmap"  >
+ insert into f_alarm_remove_det
+   (alarm_type,
+    org_no,
+    cons_no,
+    dev_type,
+    dev_id,
+    alarm_code,
+    staff_no,
+    set_date,
+    is_valid )
+ values
+   (#{ALARM_TYPE},#{ORG_NO},#{CONS_NO},#{DEV_TYPE},#{DEV_ID},#{ALARM_CODE},#{STAFF_NO},sysdate,#{ISVALID})
+</insert>
+	
+<update id="updateAlarmRemove"  parameterType="hashmap"  >
+	update  f_alarm_remove_det t set t.is_valid=0 ,t.unset_date=sysdate where t.cons_no=#{CONS_NO}
+</update> 
+
+<select id="findAlarmRemoveis"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+		select count(*) cu from   f_alarm_remove_det t   where t.cons_no=#{CONS_NO}
+</select>
+		
+		
+ 
+		
+		
+<select id="awaitchaoqiQuery" useCache="false"  resultType="java.util.HashMap"  parameterType="hashmap"  >
+select *
+  from (select tmp.*,
+               ((trunc(sysdate, 'dd') - trunc(tmp.await_date, 'dd')) -
+               (SELECT MAX(param_item_val)                 
+                   FROM b_sys_parameter
+                  WHERE param_no = 'EVENT_LEVEL'
+                    AND param_item_no = tmp.event_level)) chaoqi,
+               b.except_type_name,
+               c.AWAIT_STATUS_NAME,
+               d.event_level_name,
+               e.EXCEPT_SRC_NAME,
+               f.event_name,
+               j.cons_name,
+               j.cons_type,
+               k.cons_sort_name ,
+               l.org_name
+          from (select p.*, to_char(p.await_date,'yyyy-MM-dd') await_date1,
+                       b.cons_no,
+                       to_char( b.first_happen_date,'yyyy-MM-dd') as first_alarm_date,
+                       to_char(b.happen_date ,'yyyy-MM-dd')      alarm_date
+                  from (select a.*
+                          from f_await_alarm a
+                         where a.event_level in ('01', '02', '03', '04')
+                           and a.status_code in (0, 1)
+                           and a.alarm_type = '03') p,
+                       a_tmnl_exception b
+                 where b.tmnl_exception_id = p.alarm_id
+                union all
+                
+                select p.*, to_char(p.await_date,'yyyy-MM-dd') await_date1,
+                c.cons_no, to_char(c.first_alarm_date,'yyyy-MM-dd') first_alarm_date, to_char(c.alarm_date,'yyyy-MM-dd') alarm_date
+                  from (select a.*
+                          from f_await_alarm a
+                         where a.event_level in ('01', '02', '03', '04')
+                           and a.status_code in (0, 1)
+                           and a.alarm_type != '03') p,
+                       a_alarm_analyse c
+                 where c.alarm_id = p.alarm_id) tmp,
+               vw_except_type b,
+               vw_await_status_code c,
+               vw_event_level d,
+               vw_sea_alarm_code f,
+               VW_EXCEPT_SRC e,
+               sea_c_cons j,
+               vw_cons_sort k ,
+               sea_o_org l
+         where tmp.alarm_type = b.except_type
+           and tmp.status_code = c.AWAIT_STATUS_CODE
+           and tmp.event_level = d.event_level
+           and tmp.alarm_src = e.EXCEPT_SRC_CODE
+           and tmp.alarm_code = f.event_no
+           and j.cons_no = tmp.cons_no    
+            and j.cons_type = k.cons_sort
+            and tmp.org_no=l.org_no) a
+ where  1 = 1 
+ 	   <if test="map.alarm_type!=null and map.alarm_type!=''">
+	 	    and  a.alarm_type= #{map.alarm_type}
+	   </if>
+ 	   <if test="map.chaoqi!=null and map.chaoqi!=''">
+		        and a.chaoqi     <![CDATA[>= #{map.chaoqi}  ]]>
+	   </if>
+ 	   <if test="map.event_level!=null and map.event_level!=''">
+		    and a.event_level = #{map.event_level}
+	   </if>
+	    <if test="map.org_no!=null and map.org_no!=''">
+		     and exists
+                 (select 1
+                  from (select t.org_no
+                          from sea_o_org t
+                         start with t.org_no = #{map.org_no}
+                        connect by prior t.org_no = t.p_org_no)b  where b.org_no=a.org_no  )
+	   </if>
+
+</select>
+		
+		
+		<select id="flowchaoqiQuery" useCache="false"   resultType="java.util.HashMap"  parameterType="hashmap"  >
+ select *
+  from (select tmp.*,
+               ((trunc(sysdate, 'dd') - trunc(tmp.start_time, 'dd')) -
+               (SELECT MAX(param_item_val)
+                   FROM b_sys_parameter
+                  WHERE param_no = 'EVENT_LEVEL'
+                    AND param_item_no = tmp.event_level)) chaoqi,
+               b.except_type_name,
+               d.event_level_name,
+               e.EXCEPT_SRC_NAME,
+               f.event_name,
+               j.cons_name,
+               j.cons_type,
+               k.cons_sort_name,
+               l.org_name
+          from (select p.*,
+                       b.event_level,
+                       b.except_code alarm_code,
+                       b.org_no,
+                       to_char(p.start_time, 'yyyy-MM-dd') await_date1,
+                       b.cons_no,
+                       to_char(b.first_happen_date, 'yyyy-MM-dd') as first_alarm_date,
+                       to_char(b.happen_date, 'yyyy-MM-dd') alarm_date
+                  from (select t.*, kk.alarm_type, kk.alarm_id
+                          from f_task_flow t, f_task_alarm_rela kk
+                         where t.task_id = kk.task_id
+                           and kk.alarm_type = '03'
+                           and t.flow_status_code in (2, 3)) p,
+                       a_tmnl_exception b
+                 where b.tmnl_exception_id = p.alarm_id
+                union all
+                
+                select p.*,
+                       c.event_level,
+                       c.alarm_code,
+                       c.org_no,
+                       to_char(p.start_time, 'yyyy-MM-dd') await_date1,
+                       c.cons_no,
+                       to_char(c.first_alarm_date, 'yyyy-MM-dd') first_alarm_date,
+                       to_char(c.alarm_date, 'yyyy-MM-dd') alarm_date
+                  from (select t.*, kk.alarm_type, kk.alarm_id
+                          from f_task_flow t, f_task_alarm_rela kk
+                         where t.task_id = kk.task_id
+                           and kk.alarm_type != '03'
+                           and t.flow_status_code in (2, 3)) p,
+                       a_alarm_analyse c
+                 where c.alarm_id = p.alarm_id) tmp,
+               vw_except_type b,
+               
+               vw_event_level    d,
+               vw_sea_alarm_code f,
+               VW_EXCEPT_SRC     e,
+               sea_c_cons        j,
+               vw_cons_sort      k,
+               sea_o_org         l
+         where tmp.alarm_type = b.except_type
+           and tmp.event_level = d.event_level
+           and tmp.alarm_src = e.EXCEPT_SRC_CODE
+           and tmp.alarm_code = f.event_no
+           and j.cons_no = tmp.cons_no
+           and j.cons_type = k.cons_sort
+           and tmp.org_no = l.org_no) a
+ where 1 = 1
+ 	   <if test="map.alarm_type!=null and map.alarm_type!=''">
+	 	    and  a.alarm_type= #{map.alarm_type}
+	   </if>
+ 	   <if test="map.chaoqi!=null and map.chaoqi!=''">
+		        and a.chaoqi     <![CDATA[>= #{map.chaoqi}  ]]>
+	   </if>
+ 	   <if test="map.event_level!=null and map.event_level!=''">
+		    and a.event_level = #{map.event_level}
+	   </if>
+	    <if test="map.org_no!=null and map.org_no!=''">
+		   and exists
+                 (select 1
+                  from (select t.org_no
+                          from sea_o_org t
+                         start with t.org_no = #{map.org_no}
+                        connect by prior t.org_no = t.p_org_no)b  where b.org_no=a.org_no  )
+	   </if>
+
+</select>
+		
+		
+	<select id="findRoleByStaffno" resultType="java.util.HashMap"  parameterType="hashmap">
+		SELECT R.ROLE_ID, R.ROLE_DESC
+		  FROM P_ROLE R
+		 WHERE R.ORG_NO = #{orgNo}			
+	</select>		
+		
+</mapper>

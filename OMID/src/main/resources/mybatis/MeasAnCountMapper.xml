@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.MeasAnCountMapper">
+
+  <cache />
+  
+  <select id="queryMeas" useCache="false" parameterType="String" resultType="hashmap">
+SELECT T.ORG_NO,
+       T.TG_ID,
+       O.ORG_NAME,
+       O.ORG_TYPE,
+       COUNT((CASE
+             WHEN  T.STATUS_CODE IN ('1','2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT,
+       COUNT((CASE
+             WHEN  T.STATUS_CODE IN ('2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_7,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '01' AND T.STATUS_CODE IN ('1','2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_1,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '01' AND T.STATUS_CODE IN ('2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_2,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '02' AND T.STATUS_CODE IN ('1','2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_3,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '02' AND T.STATUS_CODE IN ('2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_4,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '03' AND T.STATUS_CODE IN ('1','2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_5,
+       COUNT((CASE
+             WHEN T.ALARM_TYPE = '03' AND T.STATUS_CODE IN ('2', '3') THEN
+              T.ALARM_CNT
+             ELSE
+              NULL
+           END)) ALARM_CNT_6,
+       SEAG.TG_NAME
+  FROM T_TG_ALARM_D T, SEA_O_ORG O, SEA_G_TG SEAG
+ WHERE O.ORG_NO = T.ORG_NO
+   AND SEAG.TG_ID = T.TG_ID
+   AND T.STAT_DATE = TO_DATE(#{map.stateDate},'YYYY-MM-DD')
+   <if test="map.tgId!=null and map.tgId!=''">
+		AND SEAG.TG_NAME LIKE #{map.tgId}
+   </if>
+   <if test ="map.orgType !=02">
+   		AND T.ORG_NO = #{map.orgNo}
+   		 AND T.ORG_TYPE = #{map.orgType}
+   </if>
+ GROUP BY T.ORG_NO, T.TG_ID, SEAG.TG_NAME, O.ORG_NAME,O.ORG_TYPE
+ ORDER BY T.ORG_NO  
+  </select>
+  <select id ="queryStatusCode" useCache ="false" resultType="java.util.HashMap">
+  	SELECT SC.STATUS_NAME, SC.STATUS_CODE FROM SEA_VW_TMNL_STATUS_CODE SC
+  </select>
+  <select id="queryTgCode" resultType="java.util.HashMap">
+  	SELECT SEAC.CONS_SORT_NAME, SEAC.CONS_SORT FROM SEA.VW_CONS_SORT SEAC WHERE  7 > ROWNUM
+  </select>
+  <select id="queryTgOrgNo" useCache="false" resultType="java.util.HashMap">
+	  	SELECT SEAO.ORG_NO, SEAO.ORG_NAME,SEAO.ORG_TYPE
+	 	  FROM SEA_O_ORG SEAO
+  	<choose>
+			<when test="orgType==2">
+		  WHERE SEAO.P_ORG_NO = #{orgNo}
+   	         OR SEAO.ORG_NO = #{orgNo}	
+		  	</when>
+		  	<when test="orgType==3">
+	      WHERE SEAO.P_ORG_NO = #{orgNo}
+   	         OR SEAO.ORG_NO = #{orgNo}	
+		  	</when>
+		  	<otherwise>
+		  WHERE O.ORG_TYPE = #{orgType} AND O.ORG_NO = #{orgNo}
+		  </otherwise>
+       </choose>
+  </select>
+  <select id= "queryTgInfo" useCache="false" resultType="java.util.HashMap">
+	 SELECT SEAG.TG_ID,
+        SEAG.TG_NAME,
+        SEAG.ORG_NO,
+        O.ORG_NAME,
+        SEAC.CONS_NO,
+        SEAG.TG_CAP,
+        SEAG.TG_NAME,
+        SEAG.INST_ADDR,
+        SEAG.PUB_PRIV_FLAG,
+        VWT.CONS_TYPE,
+        VWT.EVENT_LEVEL,
+        VWT.TERMINAL_ID,
+        VWT.COLLECTOR_ID,
+        TO_CHAR(VWT.METER_ID) METER_ID,
+        SEAC.COMM_ADDR1,
+        SEAT.TMNL_ASSET_NO,
+        SEAT.TERMINAL_ADDR,
+        VWM.COLL_MODE,
+        VTT.TMNL_TYPE,
+        SEAC.COMM_ADDR1,
+        SEAR.COMM_ADDR,
+        DECODE(VWT.EVENT_LEVEL,
+               '01',
+               '#D4101D',
+               '02',
+               '#D46B1D',
+               '03',
+               '#C7CF18',
+               '04',
+               '#026115') STATE_COLOR,
+        (VWE.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+        VWS.EVENT_NO,
+        VWS.EVENT_NAME,
+        CC.CONS_NAME,
+        CC.CONS_NO,
+        SEAC.ASSET_NO     
+   FROM VW_TG_EXCEPTION       VWT,
+        SEA_G_TG              SEAG,
+        SEA_C_METER           SEAC,
+        SEA_VW_TMNL_RUN       SEAT,
+        VW_COLL_MODE          VWM,
+        SEA_VW_TMNL_TYPE_CODE VTT,
+        SEA_O_ORG             O,
+        VW_EVENT_LEVEL        VWE,
+        SEA_R_EXEC_OTHER_DEV  SEAR,
+        VW_SEA_ALARM_CODE     VWS,
+        SEA_C_CONS             CC
+  WHERE SEAG.TG_ID = VWT.TG_ID
+    AND VWT.METER_ID = SEAC.METER_ID
+    AND VWT.TERMINAL_ID = SEAT.TERMINAL_ID
+    AND VWM.COLL_MODE_CODE = SEAT.COLL_MODE
+    AND VTT.TMNL_TYPE_CODE = SEAT.TERMINAL_TYPE_CODE
+    AND O.ORG_NO = SEAG.ORG_NO
+    AND SEAC.FMR_ASSET_NO = SEAR.COLLECTOR_ID
+    AND VWE.EVENT_LEVEL = VWT.EVENT_LEVEL
+    AND VWT.ALARM_CODE = VWS.EVENT_NO
+    AND CC.CONS_NO = SEAC.CONS_NO
+    AND SEAG.TG_ID = #{tgId}
+ 
+  </select>
+  <select id= "querTgTotal" useCache="false" resultType="java.util.HashMap">
+  	SELECT ATG.PPQ,
+       ATG.TG_SPQ,
+       ATG.READ_CNT,
+       ATG.READ_SUCC_CNT,
+       (ROUND(ATG.READ_SUCC_RATE, 2) || '％') READ_SUCC_RATE,
+       (CASE
+         WHEN ATG.PPQ = 0 OR ATG.PPQ IS NULL OR  ATG.TG_SPQ>ATG.PPQ  OR
+              ATG.TG_SPQ=0 OR ATG.TG_SPQ IS NULL THEN
+          '0'
+         WHEN ATG.PPQ > 0 THEN
+          ROUND((ATG.PPQ - ATG.TG_SPQ)/ATG.PPQ*100,2)||'％'
+       END) READ_FAIL_RATE
+  FROM SEA_A_TG_PQ ATG
+ WHERE ATG.TG_ID = #{tgId}
+   AND ATG.ORG_NO = #{orgNo}
+   AND ATG.ORG_TYPE = #{orgType}
+   AND ATG.STAT_DATE = #{stateDate}
+  </select>
+<select id="queryLineInfo" useCache="false" parameterType="String" resultType="hashmap">
+	SELECT O.ORG_NO,
+       O.ORG_NAME,
+       GL.LINE_NAME,
+       GL.LINE_ID,
+       GL.LINE_NO,
+       COUNT(CASE
+             WHEN TL.STATUS_CODE IN ('1', '2', '3') THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT,
+       COUNT(CASE
+             WHEN TL.ALARM_TYPE = '01' AND TL.STATUS_CODE IN ('1','2', '3') THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_1,
+       COUNT(CASE
+             WHEN TL.ALARM_TYPE = '02' AND TL.STATUS_CODE IN ('1', '2', '3') THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_2,
+       COUNT(CASE
+             WHEN TL.ALARM_TYPE = '03' AND TL.STATUS_CODE IN ('1', '2', '3') THEN
+              TL.ALARM_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_3,
+       SUM(CASE
+             WHEN TL.CONS_SORT IN ('01', '02') THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_4,
+       SUM(CASE
+             WHEN TL.CONS_SORT = '06' THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_5,
+       SUM(CASE
+             WHEN TL.CONS_SORT IN ('03', '04', '05') THEN
+              TL.CONS_CNT
+             ELSE
+              NULL
+           END) LINE_CNT_6
+  FROM 	T_LINE_ALARM_D TL, SEA_G_LINE GL, SEA_O_ORG O
+ WHERE GL.LINE_ID = TL.LINE_ID
+   AND O.ORG_NO = GL.ORG_NO
+   <if test ="map.orgType!=02">
+	   AND O.ORG_NO = #{map.orgNo}	
+	   AND TL.ORG_TYPE =#{map.orgType}
+   </if>
+   <if test="map.lineId!=null and map.lineId!=''">
+		AND GL.LINE_NAME LIKE #{map.lineId}
+   </if>
+   AND TL.STAT_DATE = TO_DATE(#{map.stateDate},'YYYY-MM-DD')
+ GROUP BY O.ORG_NO, GL.LINE_NAME, GL.LINE_ID, GL.LINE_NO, O.ORG_NAME
+</select>
+<select id="querySubs"  resultType="hashmap">
+SELECT GS.SUBS_ID, GS.SUBS_NAME, GS.SUBS_ADDR, GS.MT_CAP, L.LINE_NAME,O.ORG_NAME
+  FROM SEA_G_SUBS GS, SEA_G_SUBS_LINE_RELA SL, SEA_G_LINE L,SEA_O_ORG O
+ WHERE GS.SUBS_ID = SL.SUBS_ID
+   AND O.ORG_NO = L.ORG_NO
+   AND SL.LINE_ID = L.LINE_ID
+   AND SL.LINE_ID = #{lineId}
+</select>
+<select id= "queryAsLine" resultType="hashmap">
+SELECT DISTINCT GL.LINE_ID,
+       CC.CONS_SORT,
+       DECODE(CC.CONS_SORT, '06', 'SHARE', 'SELF') PROP,
+       GL.LINE_NAME,
+       O.ORG_NAME,
+       CC.CONS_NAME,
+       CC.SUBS_ID,
+       CC.RUN_CAP,
+       AA.ALARM_TYPE,
+       AA.EVENT_LEVEL,
+       DECODE(AA.EVENT_LEVEL,'01','04','02','03','03','02','04','01')EVENT_LEVEL_FU,
+       (VW.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+       DECODE(AA.EVENT_LEVEL,
+              '01',
+              '#D4101D',
+              '02',
+              '#D46B1D',
+              '03',
+              '#C7CF18',
+              '04',
+              '#026115') STATE_COLOR
+  FROM SEA_C_MP        MP,
+       SEA_C_CONS      CC,
+       SEA_G_LINE      GL,
+       A_ALARM_ANALYSE AA,
+       VW_EVENT_LEVEL  VW,
+       VW_EXCEPT_TYPE  VWE,
+       SEA_O_ORG       O
+ WHERE MP.CONS_NO = CC.CONS_NO
+   AND MP.LINE_ID = GL.LINE_ID
+   AND AA.CONS_NO = CC.CONS_NO
+   AND AA.EVENT_LEVEL = VW.EVENT_LEVEL
+   AND VWE.EXCEPT_TYPE = AA.ALARM_TYPE
+   AND GL.ORG_NO = O.ORG_NO
+   AND CC.CONS_SORT IN ('01', '02', '06', '07', '08', '09')
+   AND GL.LINE_ID IN (SELECT GL.LINE_ID
+                        FROM SEA_G_LINE_RELA GL, SEA_G_LINE SGL
+                       WHERE GL.LINE_ID = SGL.LINE_ID
+                         AND GL.LINK_LINE_ID = #{lineId})
+
+</select>
+<select id= "queryMainAsLine"  resultType="hashmap">
+SELECT DISTINCT GL.LINE_ID,
+       CC.CONS_SORT,
+       DECODE(CC.CONS_SORT, '06', 'SHARE', 'SELF') PROP,
+       GL.LINE_NAME,
+       O.ORG_NAME,
+       CC.CONS_NAME,
+       CC.SUBS_ID,
+       CC.RUN_CAP,
+       AA.ALARM_TYPE,
+       AA.EVENT_LEVEL,
+       DECODE(AA.EVENT_LEVEL,'01','04','02','03','03','02','04','01')EVENT_LEVEL_FU,
+       (VW.EVENT_LEVEL_NAME || '异常') EVENT_LEVEL_NAME,
+       DECODE(AA.EVENT_LEVEL,
+              '01',
+              '#D4101D',
+              '02',
+              '#D46B1D',
+              '03',
+              '#C7CF18',
+              '04',
+              '#026115') STATE_COLOR
+  FROM SEA_C_MP        MP,
+       SEA_C_CONS      CC,
+       SEA_G_LINE      GL,
+       A_ALARM_ANALYSE AA,
+       VW_EVENT_LEVEL  VW,
+       VW_EXCEPT_TYPE  VWE,
+       SEA_O_ORG       O
+ WHERE MP.CONS_NO = CC.CONS_NO
+   AND MP.LINE_ID = GL.LINE_ID
+   AND AA.CONS_NO = CC.CONS_NO
+   AND AA.EVENT_LEVEL = VW.EVENT_LEVEL
+   AND VWE.EXCEPT_TYPE = AA.ALARM_TYPE
+   AND O.ORG_NO  = GL.ORG_NO
+   AND CC.CONS_SORT IN ('01', '02', '06', '07', '08', '09')
+   AND GL.LINE_ID = #{lineId}
+</select>
+<select id='queryConsNum' resultType="hashmap">
+SELECT VWC.CONS_SORT_NAME, DECODE(T.CNT,NULL,'0',T.CNT)CNT
+  FROM (SELECT C.CONS_SORT, DECODE(COUNT(1), NULL, 0, COUNT(1)) CNT
+          FROM SEA_C_MP MP, SEA_C_CONS C, VW_CONS_SORT VWC
+         WHERE MP.LINE_ID IN
+               (SELECT GL.LINE_ID
+                  FROM SEA_G_LINE_RELA GL, SEA_G_LINE SGL
+                 WHERE GL.LINE_ID = SGL.LINE_ID
+                   AND GL.LINK_LINE_ID = #{lineId})
+           AND C.CONS_NO = MP.CONS_NO
+           AND VWC.CONS_SORT = C.CONS_SORT
+         GROUP BY C.CONS_SORT
+        UNION
+        SELECT C.CONS_SORT, DECODE(COUNT(1), NULL, 0, COUNT(1)) CNT
+          FROM SEA_C_MP MP, SEA_C_CONS C, VW_CONS_SORT VWC
+         WHERE MP.LINE_ID = #{lineId}
+           AND C.CONS_NO = MP.CONS_NO
+           AND VWC.CONS_SORT = C.CONS_SORT
+         GROUP BY C.CONS_SORT) T,
+       VW_CONS_SORT VWC
+ WHERE VWC.CONS_SORT = T.CONS_SORT(+)
+ ORDER BY VWC.CONS_SORT
+</select>
+<select id ="queryLineId" resultType="hashmap">
+	SELECT GL.LINK_LINE_ID
+  FROM SEA_G_LINE_RELA GL
+ WHERE GL.LINE_ID = #{lineId}
+   AND GL.CASCADE_FLAG = '0'
+</select>
+<select id ="queryLineLL" resultType="hashmap">
+	SELECT ROUND(A.LINE_SUPPLY_PQ, 2) LINE_SUPPLY_PQ,
+       ROUND(A.TG_SPQ, 2) TG_SPQ,
+       ROUND((A.LINE_SPQ - A.TG_SPQ), 2) SPQ,
+       ROUND(A.LINE_SPQ, 2) LINE_SPQ,
+       DECODE((ROUND(A.L_LLR, 2) || '％'),
+              '％',
+              0,
+              (ROUND(A.L_LLR, 2) || '％')) AS L_LLR,
+       ROUND((A.PPQ - A.TG_SPQ), 2) AS LOSEPQ
+  FROM SEA_A_LINE_PQ A
+ WHERE A.LINE_ID = #{lineId}
+   AND A.STAT_DATE = #{statDate}
+
+</select>
+<select id="tgDetailInfo" useCache="false" parameterType="String" resultType="hashmap">
+	SELECT VET.EXCEPT_TYPE_NAME,
+       B.EVENT_NAME,
+       A.ALARM_CODE,
+       EL.EVENT_LEVEL_NAME,
+       DS.DATA_SRC,
+       C.CONS_NAME,
+       C.CONS_NO,
+       VCS.CONS_SORT_NAME,
+       A.ALARM_DATE,
+       A.FIRST_ALARM_DATE,
+       A.RESUME_DATE,
+       A.FIRST_RESUME_DATE,
+       A.RESUME_DAY_CNT,
+       R.TMNL_ASSET_NO,
+       R.TERMINAL_ADDR,
+       CM.ASSET_NO
+  FROM A_ALARM_ANALYSE  A,
+       SEA_C_CONS       C,
+       SEA_R_TMNL_RUN   R,
+       SEA_C_METER      CM,
+       B_PROTOCOL_EVENT B,
+       VW_CONS_SORT     VCS,
+       VW_DATA_SRC      DS,
+       VW_EVENT_LEVEL   EL,
+       VW_EXCEPT_TYPE   VET
+ WHERE C.CONS_NO = A.CONS_NO
+   AND A.TERMINAL_ID = R.TERMINAL_ID
+   AND A.METER_ID = CM.METER_ID
+   AND B.EVENT_NO = A.ALARM_CODE
+   AND C.CONS_SORT = VCS.CONS_SORT
+   AND DS.DATA_SRC_NO = A.DATA_SRC
+   AND EL.EVENT_LEVEL = A.EVENT_LEVEL
+   AND VET.EXCEPT_TYPE = A.ALARM_TYPE
+   AND C.TG_ID = #{map.tgId}
+</select>
+<select id="lineDetailInfo" useCache="false" parameterType="String" resultType="hashmap">
+SELECT VET.EXCEPT_TYPE_NAME,
+       B.EVENT_NAME,
+       A.ALARM_CODE,
+       EL.EVENT_LEVEL_NAME,
+       DS.DATA_SRC,
+       C.CONS_NAME,
+       C.CONS_NO,
+       VCS.CONS_SORT_NAME,
+       A.ALARM_DATE,
+       A.FIRST_ALARM_DATE,
+       A.RESUME_DATE,
+       A.FIRST_RESUME_DATE,
+       A.RESUME_DAY_CNT,
+       R.TMNL_ASSET_NO,
+       R.TERMINAL_ADDR,
+       CM.ASSET_NO
+  FROM A_ALARM_ANALYSE  A,
+       SEA_C_CONS       C,
+       SEA_R_TMNL_RUN   R,
+       SEA_C_METER      CM,
+       B_PROTOCOL_EVENT B,
+       VW_CONS_SORT     VCS,
+       VW_DATA_SRC      DS,
+       VW_EVENT_LEVEL   EL,
+       VW_EXCEPT_TYPE   VET
+ WHERE C.CONS_NO = A.CONS_NO
+   AND A.TERMINAL_ID = R.TERMINAL_ID
+   AND A.METER_ID = CM.METER_ID
+   AND B.EVENT_NO = A.ALARM_CODE
+   AND C.CONS_SORT = VCS.CONS_SORT
+   AND DS.DATA_SRC_NO = A.DATA_SRC
+   AND EL.EVENT_LEVEL = A.EVENT_LEVEL
+   AND VET.EXCEPT_TYPE = A.ALARM_TYPE
+   AND C.LINE_ID =#{map.lineId}
+   UNION ALL
+   SELECT VET.EXCEPT_TYPE_NAME,
+       B.EVENT_NAME,
+       A.ALARM_CODE,
+       EL.EVENT_LEVEL_NAME,
+       DS.DATA_SRC,
+       C.CONS_NAME,
+       C.CONS_NO,
+       VCS.CONS_SORT_NAME,
+       A.ALARM_DATE,
+       A.FIRST_ALARM_DATE,
+       A.RESUME_DATE,
+       A.FIRST_RESUME_DATE,
+       A.RESUME_DAY_CNT,
+       R.TMNL_ASSET_NO,
+       R.TERMINAL_ADDR,
+       CM.ASSET_NO
+  FROM A_ALARM_ANALYSE  A,
+       SEA_C_CONS       C,
+       SEA_R_TMNL_RUN   R,
+       SEA_C_METER      CM,
+       B_PROTOCOL_EVENT B,
+       VW_CONS_SORT     VCS,
+       VW_DATA_SRC      DS,
+       VW_EVENT_LEVEL   EL,
+       VW_EXCEPT_TYPE   VET
+ WHERE C.CONS_NO = A.CONS_NO
+   AND A.TERMINAL_ID = R.TERMINAL_ID
+   AND A.METER_ID = CM.METER_ID
+   AND B.EVENT_NO = A.ALARM_CODE
+   AND C.CONS_SORT = VCS.CONS_SORT
+   AND DS.DATA_SRC_NO = A.DATA_SRC
+   AND EL.EVENT_LEVEL = A.EVENT_LEVEL
+   AND VET.EXCEPT_TYPE = A.ALARM_TYPE
+   AND C.LINE_ID in( SELECT GL.LINE_ID
+                        FROM SEA_G_LINE_RELA GL, SEA_G_LINE SGL
+                       WHERE GL.LINE_ID = SGL.LINE_ID
+                         AND GL.LINK_LINE_ID = #{map.lineId})
+</select>
+<select id="lineAsDetailInfo" useCache="false" parameterType="String" resultType="hashmap">
+	SELECT VET.EXCEPT_TYPE_NAME,
+       B.EVENT_NAME,
+       A.ALARM_CODE,
+       EL.EVENT_LEVEL_NAME,
+       DS.DATA_SRC,
+       C.CONS_NAME,
+       C.CONS_NO,
+       VCS.CONS_SORT_NAME,
+       A.ALARM_DATE,
+       A.FIRST_ALARM_DATE,
+       A.RESUME_DATE,
+       A.FIRST_RESUME_DATE,
+       A.RESUME_DAY_CNT,
+       R.TMNL_ASSET_NO,
+       R.TERMINAL_ADDR,
+       CM.ASSET_NO
+  FROM A_ALARM_ANALYSE  A,
+       SEA_C_CONS       C,
+       SEA_R_TMNL_RUN   R,
+       SEA_C_METER      CM,
+       B_PROTOCOL_EVENT B,
+       VW_CONS_SORT     VCS,
+       VW_DATA_SRC      DS,
+       VW_EVENT_LEVEL   EL,
+       VW_EXCEPT_TYPE   VET
+ WHERE C.CONS_NO = A.CONS_NO
+   AND A.TERMINAL_ID = R.TERMINAL_ID
+   AND A.METER_ID = CM.METER_ID
+   AND B.EVENT_NO = A.ALARM_CODE
+   AND C.CONS_SORT = VCS.CONS_SORT
+   AND DS.DATA_SRC_NO = A.DATA_SRC
+   AND EL.EVENT_LEVEL = A.EVENT_LEVEL
+   AND VET.EXCEPT_TYPE = A.ALARM_TYPE
+   AND C.LINE_ID =#{map.LINK_LINE_ID}
+   UNION ALL
+   SELECT VET.EXCEPT_TYPE_NAME,
+       B.EVENT_NAME,
+       A.ALARM_CODE,
+       EL.EVENT_LEVEL_NAME,
+       DS.DATA_SRC,
+       C.CONS_NAME,
+       C.CONS_NO,
+       VCS.CONS_SORT_NAME,
+       A.ALARM_DATE,
+       A.FIRST_ALARM_DATE,
+       A.RESUME_DATE,
+       A.FIRST_RESUME_DATE,
+       A.RESUME_DAY_CNT,
+       R.TMNL_ASSET_NO,
+       R.TERMINAL_ADDR,
+       CM.ASSET_NO
+  FROM A_ALARM_ANALYSE  A,
+       SEA_C_CONS       C,
+       SEA_R_TMNL_RUN   R,
+       SEA_C_METER      CM,
+       B_PROTOCOL_EVENT B,
+       VW_CONS_SORT     VCS,
+       VW_DATA_SRC      DS,
+       VW_EVENT_LEVEL   EL,
+       VW_EXCEPT_TYPE   VET
+ WHERE C.CONS_NO = A.CONS_NO
+   AND A.TERMINAL_ID = R.TERMINAL_ID
+   AND A.METER_ID = CM.METER_ID
+   AND B.EVENT_NO = A.ALARM_CODE
+   AND C.CONS_SORT = VCS.CONS_SORT
+   AND DS.DATA_SRC_NO = A.DATA_SRC
+   AND EL.EVENT_LEVEL = A.EVENT_LEVEL
+   AND VET.EXCEPT_TYPE = A.ALARM_TYPE
+   AND C.LINE_ID = #{map.lineId}
+</select>
+</mapper>

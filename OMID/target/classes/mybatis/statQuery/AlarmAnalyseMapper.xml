@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.statQuery.mapper.AlarmAnalyseMapper">
+
+  <cache />
+  
+  <select id="queryAlarmAnyse" useCache="false" resultType="java.util.HashMap"> 
+select alarm_id,
+       alarm_type,
+       a.org_no,
+       cons_no,
+       terminal_id,
+       tmnl_asset_no,
+       terminal_addr,
+       factory_code,
+       a.protocol_code,
+       meter_id,
+       meter_asset_no,
+       meter_manufacturer,
+       comm_no,
+       a.data_src,
+       alarm_code,
+       alarm_src,
+       event_code,
+       type_code,
+       first_alarm_date,
+       alarm_date,
+       alarm_cnt,
+       save_alarm_date,
+       first_resume_date,
+       resume_date,
+       resume_day_cnt,
+       a.event_level,
+       b.org_name,
+       c.protocol_name,
+       e.except_src_name,
+       
+       d.data_src date_src_name,
+       f.event_level_name,
+       g.except_type_name
+  from a_alarm_analyse_his a,
+       sea_o_org           b,
+       vw_protocol_code    c,
+       vw_data_src         d,
+       vw_except_src       e,
+       VW_EVENT_LEVEL      f,
+       vw_except_type      g
+  
+ where a.org_no = b.org_no
+   	   and a.protocol_code = c.protocol_code
+	   and a.data_src = d.data_src_no
+	   and a.alarm_src = e.except_src_code
+	   and a.event_level = f.event_level
+	   and a.alarm_type = g.except_type
+   <if test="map.org_no != null and map.org_no != ''">
+   		and a.org_no like '%${map.org_no}%'
+   </if>
+   <if test="map.event_level != null and map.event_level != ''">
+   		and a.event_level = #{map.event_level}
+   </if>
+   <if test="map.alarm_src != null and map.alarm_src != ''">
+   		and a.alarm_src = #{map.alarm_src}
+   </if>
+   <if test="map.minDate!=null and map.minDate!='' and map.maxDate!=null and map.maxDate!='' ">
+	    and a.alarm_date between to_date(#{map.minDate},'yyyy-MM-dd') and to_date(#{map.maxDate},'yyyy-MM-dd')
+   </if>
+   <if test="(map.minDate == '' or map.minDate == null) and map.maxDate != '' and map.maxDate != null">
+	    and a.alarm_date &lt; to_date(#{map.maxDate},'yyyy-MM-dd')
+   </if>
+  </select>
+  
+ <!--通用store-->
+  <select id="getComplexCommonList" parameterType="hashmap" resultType="hashmap">
+       select '' value,'全部' name from dual 
+       union all
+       select ${column_value} value,${column_name} name from ${table_name} where 1=1
+       <if test="event_type!=null and event_type!=''">
+       		and event_type=#{event_type} 
+       </if>
+  </select>
+  
+  <!--异常综合查询-->
+  <select id="queryComplexAlarm" useCache="false" resultType="hashmap">
+  	<choose>
+  		<when test="map.event_type=='03'">
+  	
+select a.*,b.terminal_addr,b.tmnl_asset_no,b.terminal_type_code,b.coll_mode,b.factory_code,b.status_code,
+                       c.cons_name,c.cons_sort_code,c.elec_addr,c.trade_code,c.cap_grade_no,d.event_name,e.event_level_name,f.EXCEPT_SRC_NAME,g.org_name,h.flow_flag_name,i.flow_status_name,j.cons_sort_name  
+ from (		
+	select distinct(ateh.terminal_id),
+	   ateh.tmnl_exception_id,
+       ateh.org_no,
+       ateh.cons_no,
+       to_char(ateh.first_happen_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+       to_char(ateh.happen_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+       ateh.alarm_cnt,
+       to_char(ateh.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+       to_char(ateh.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+       ateh.resume_day_cnt,
+       ateh.except_code,
+       ateh.type_code,
+       ateh.event_level,
+       ateh.except_src,
+       ateh.flow_status_code,
+       ateh.flow_status_detail,
+       ateh.flow_flag,
+       ateh.handle_org_no,
+       ateh.handle_staff_no,
+       to_char(ateh.handle_date, 'yyyy-mm-dd hh24:mi:ss') handle_date,
+       ateh.manage_type
+  from a_tmnl_exception_his ateh where 1=1
+    <if test="map.start_date!=null and map.start_date!=''">
+  			and to_char(ateh.happen_date,'yyyy-mm-dd')>=to_char(to_date(#{map.start_date},'yyyy-mm-dd'),'yyyy-mm-dd')
+  	</if>
+  	<if test="map.end_date!=null and map.end_date!=''">
+	  		and to_char(to_date(#{map.end_date},'yyyy-mm-dd'),'yyyy-mm-dd') >=to_char(ateh.happen_date,'yyyy-mm-dd')
+  	</if>
+   	<if test="map.org_no!=null and map.org_no!=''">
+  		and exists (select 1 from (select s.org_no
+		  from sea_o_org s
+		 connect by prior org_no = p_org_no
+		 start with org_no = #{map.org_no}
+		 )org where ateh.org_no=org.org_no)
+	</if>
+	<if test="map.event_level!=null and map.event_level!=''">
+		and ateh.event_level=#{map.event_level}
+	</if>
+	<if test="map.alarm_src!=null and map.alarm_src!=''">
+		and ateh.except_src=#{map.alarm_src}
+	</if> 
+	<if test="map.flow_flag!=null and map.flow_flag!=''">
+		and ateh.flow_flag=#{map.flow_flag}
+	</if>
+	<if test="map.flow_status!=null and map.flow_status!=''">
+		and ateh.flow_status_code=#{map.flow_status}
+	</if> 
+	<if test="map.event_name!=null and map.event_name!='' and map.event_name!='null'">
+		and ateh.except_code=#{map.event_name}
+	</if> 
+	<if test="map.flow_status!='4' and map.flow_status!='5'">
+		union all
+	   select   distinct(ate.terminal_id),
+	   ate.tmnl_exception_id,
+       ate.org_no,
+       ate.cons_no,
+       to_char(ate.first_happen_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+       to_char(ate.happen_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+       ate.alarm_cnt,
+       to_char(ate.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+       to_char(ate.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+       ate.resume_day_cnt,
+       ate.except_code,
+       ate.type_code,
+       ate.event_level,
+       ate.except_src,
+       ate.flow_status_code,
+       ate.flow_status_detail,
+       ate.flow_flag,
+       ate.handle_org_no,
+       ate.HANDLER_STAFF_NO handle_staff_no,
+       to_char(ate.handle_date, 'yyyy-mm-dd hh24:mi:ss') handle_date,
+       ate.manage_type
+       from a_tmnl_exception ate where 1=1
+		    <if test="map.start_date!=null and map.start_date!=''">
+		  			and to_char(ate.happen_date,'yyyy-mm-dd')>=to_char(to_date(#{map.start_date},'yyyy-mm-dd'),'yyyy-mm-dd')
+		  	</if>
+		  	<if test="map.end_date!=null and map.end_date!=''">
+			  		and to_char(to_date(#{map.end_date},'yyyy-mm-dd'),'yyyy-mm-dd') >=to_char(ate.happen_date,'yyyy-mm-dd')
+		  	</if>
+		   	<if test="map.org_no!=null and map.org_no!=''">
+		  		and exists (select 1 from (select s.org_no
+				  from sea_o_org s
+				 connect by prior org_no = p_org_no
+				 start with org_no = #{map.org_no}
+				 )org where ate.org_no=org.org_no)
+			</if>
+			<if test="map.event_level!=null and map.event_level!=''">
+				and ate.event_level=#{map.event_level}
+			</if>
+			<if test="map.alarm_src!=null and map.alarm_src!=''">
+				and ate.except_src=#{map.alarm_src}
+			</if> 
+			<if test="map.flow_flag!=null and map.flow_flag!=''">
+				and ate.flow_flag=#{map.flow_flag}
+			</if>
+			<if test="map.flow_status!=null and map.flow_status!=''">
+				and ate.flow_status_code=#{map.flow_status}
+			</if> 
+			<if test="map.event_name!=null and map.event_name!='' and map.event_name!='null'">
+				and ate.except_code=#{map.event_name}
+			</if>
+		</if> 
+		)a,
+		
+		  (select rtr.terminal_id,rtr.tmnl_asset_no,rtr.terminal_addr,rtr.factory_code,
+       rtr.terminal_type_code,rtr.coll_mode, rtr.protocol_code,rtr.status_code
+        from sea_r_tmnl_run rtr where 1=1
+		<if test="map.terminal_addr!=null and map.terminal_addr!=''">
+			and rtr.terminal_addr in (${map.terminal_addr})
+		</if>
+		<if test="map.protocol_code!=null and map.protocol_code!=''">
+			and rtr.protocol_code=#{map.protocol_code}
+		</if> 
+		<if test="map.coll_mode!=null and map.coll_mode!=''">
+			and rtr.coll_mode=#{map.coll_mode}
+		</if>
+		<if test="map.terminal_type_code!=null and map.terminal_type_code!=''">
+			and rtr.terminal_type_code=#{map.terminal_type_code}
+		</if> 
+		<if test="map.status_code!=null and map.status_code!=''">
+			and rtr.status_code=#{map.status_code}
+		</if> 
+		) b,
+	
+	 (select cc.cons_id,cc.org_no,cc.cons_no,cc.cons_name,
+            cc.cons_sort_code,cc.elec_addr,cc.cap_grade_no,cc.trade_code from sea_c_cons cc where 1=1
+            <if test="map.cons_no!=null and map.cons_no!=''">
+				and cc.cons_no in (${map.cons_no})
+			</if>
+			<if test="map.cons_sort_code!=null and map.cons_sort_code!=''">
+				and cc.cons_sort_code=#{map.cons_sort_code}
+			</if> 
+			<if test="map.trade_code!=null and map.trade_code!=''">
+				and cc.trade_code=#{map.trade_code}
+			</if>
+			<if test="map.cons_name!=null and map.cons_name!=''">
+				and instr(cc.cons_name,#{map.cons_name})>0
+			</if> 
+			<if test="map.elec_addr!=null and map.elec_addr!=''">
+				and instr(cc.elec_addr,#{map.elec_addr})>0
+			</if> 
+			<if test="map.cap_grade_no!=null and map.cap_grade_no!=''">
+				and cc.cap_grade_no=#{map.cap_grade_no}
+			</if>
+	      )c,
+	      VW_SEA_ALARM_CODE d,
+	      vw_event_level e,
+	      vw_except_src f,
+	      sea_o_org g,
+	      vw_flow_flag_code h,
+	      vw_flow_status_code i,
+     	  vw_cons_sort j  
+	      where a.terminal_id=b.terminal_id
+	      and a.cons_no=c.cons_no
+	      and a.except_code=d.event_no(+)
+	      and a.event_level=e.event_level(+)
+	      and a.except_src=f.EXCEPT_SRC_CODE(+)
+	      and a.org_no=g.org_no(+)
+	      and a.flow_flag=h.flow_flag_code(+)
+	      and a.flow_status_code=i.flow_status_code(+)
+	      and c.cons_sort_code=j.cons_sort
+  		</when>
+  		<otherwise>
+  		select a.*,b.terminal_addr,b.tmnl_asset_no,b.terminal_type_code,b.coll_mode,b.factory_code,b.status_code,
+                       c.cons_name,c.cons_sort_code,c.elec_addr,c.trade_code,c.cap_grade_no,
+                       k.asset_no,
+                       k.comm_no,
+                       k.mp_name,
+                       k.type_code,
+                       k.usage_type_code,d.event_name,e.event_level_name,f.EXCEPT_SRC_NAME,g.org_name,h.flow_flag_name,i.flow_status_name,j.cons_sort_name 
+		from (
+  		select distinct(aaah.terminal_id), aaah.alarm_id,aaah.alarm_type,aaah.org_no,aaah.cons_no,aaah.meter_id,aaah.alarm_code except_code,
+		   aaah.alarm_src except_src,aaah.alarm_cnt,aaah.event_level,aaah.resume_day_cnt,
+		   to_char(aaah.first_alarm_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+		   to_char(aaah.alarm_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+		   to_char(aaah.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+		   to_char(aaah.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+		   aaah.handle_org_no,
+		   aaah.handle_staff_no handle_staff_no,
+		   aaah.flow_flag,
+		   aaah.flow_status_code
+		   from a_alarm_analyse_his aaah 
+		   where aaah.alarm_type=#{map.event_type}
+		   <if test="map.start_date!=null and map.start_date!=''">
+		  		and to_char(aaah.alarm_date,'yyyy-mm-dd')>=to_char(to_date(#{map.start_date},'yyyy-mm-dd'),'yyyy-mm-dd')
+		  	</if>
+		  	<if test="map.end_date!=null and map.end_date!=''">
+			  	and to_char(to_date(#{map.end_date},'yyyy-mm-dd'),'yyyy-mm-dd') >=to_char(aaah.alarm_date,'yyyy-mm-dd')
+		  	</if>
+		   	<if test="map.org_no!=null and map.org_no!=''">
+		  		and exists (select 1 from (select s.org_no
+				  from sea_o_org s
+				 connect by prior org_no = p_org_no
+				 start with org_no = #{map.org_no}
+				 )org where aaah.org_no=org.org_no)
+			</if>
+			<if test="map.event_level!=null and map.event_level!=''">
+				and aaah.event_level=#{map.event_level}
+			</if>
+			<if test="map.alarm_src!=null and map.alarm_src!=''">
+				and aaah.alarm_src=#{map.alarm_src}
+			</if> 
+			<if test="map.flow_flag!=null and map.flow_flag!=''">
+				and aaah.flow_flag=#{map.flow_flag}
+			</if>
+			<if test="map.flow_status!=null and map.flow_status!=''">
+				and aaah.flow_status_code=#{map.flow_status}
+			</if> 
+			<if test="map.event_name!=null and map.event_name!='' and map.event_name!='null'">
+				and aaah.alarm_code=#{map.event_name}
+			</if> 
+		   	<if test="map.flow_status!='4' and map.flow_status!='5'">
+		   		 union all
+				select distinct(aaa.terminal_id),aaa.alarm_id,aaa.alarm_type,aaa.org_no,aaa.cons_no,aaa.meter_id,aaa.alarm_code except_code,
+				aaa.alarm_src except_src,aaa.alarm_cnt,aaa.event_level,aaa.resume_day_cnt,
+				  to_char(aaa.first_alarm_date, 'yyyy-mm-dd hh24:mi:ss') first_happen_date,
+				   to_char(aaa.alarm_date, 'yyyy-mm-dd hh24:mi:ss') happen_date,
+				   to_char(aaa.first_resume_date, 'yyyy-mm-dd hh24:mi:ss') first_resume_date,
+				   to_char(aaa.resume_date, 'yyyy-mm-dd hh24:mi:ss') resume_date,
+				   aaa.handle_org_no,
+				   aaa.handle_staff_no handle_staff_no,
+				   aaa.flow_flag,
+				   aaa.flow_status_code
+				 from a_alarm_analyse aaa 
+				 where aaa.alarm_type=#{map.event_type}
+			   <if test="map.start_date!=null and map.start_date!=''">
+			  		and to_char(aaa.alarm_date,'yyyy-mm-dd')>=to_char(to_date(#{map.start_date},'yyyy-mm-dd'),'yyyy-mm-dd')
+			  	</if>
+			  	<if test="map.end_date!=null and map.end_date!=''">
+				  	and to_char(to_date(#{map.end_date},'yyyy-mm-dd'),'yyyy-mm-dd') >=to_char(aaa.alarm_date,'yyyy-mm-dd')
+			  	</if>
+			   	<if test="map.org_no!=null and map.org_no!=''">
+			  		and exists (select 1 from (select s.org_no
+					  from sea_o_org s
+					 connect by prior org_no = p_org_no
+					 start with org_no = #{map.org_no}
+					 )org where aaa.org_no=org.org_no)
+				</if>
+				<if test="map.event_level!=null and map.event_level!=''">
+					and aaa.event_level=#{map.event_level}
+				</if>
+				<if test="map.alarm_src!=null and map.alarm_src!=''">
+					and aaa.alarm_src=#{map.alarm_src}
+				</if> 
+				<if test="map.flow_flag!=null and map.flow_flag!=''">
+					and aaa.flow_flag=#{map.flow_flag}
+				</if>
+				<if test="map.flow_status!=null and map.flow_status!=''">
+					and aaa.flow_status_code=#{map.flow_status}
+				</if> 
+				<if test="map.event_name!=null and map.event_name!='' and map.event_name!='null'">
+					and aaa.alarm_code=#{map.event_name}
+				</if> 
+		   	</if>
+		   	)a,
+		   	(select rtr.terminal_id,rtr.tmnl_asset_no,rtr.terminal_addr,rtr.factory_code,
+       rtr.terminal_type_code,rtr.coll_mode, rtr.protocol_code,rtr.status_code
+        from sea_r_tmnl_run rtr where 1=1
+		<if test="map.terminal_addr!=null and map.terminal_addr!=''">
+			and rtr.terminal_addr in (${map.terminal_addr})
+		</if>
+		<if test="map.protocol_code!=null and map.protocol_code!=''">
+			and rtr.protocol_code=#{map.protocol_code}
+		</if> 
+		<if test="map.coll_mode!=null and map.coll_mode!=''">
+			and rtr.coll_mode=#{map.coll_mode}
+		</if>
+		<if test="map.terminal_type_code!=null and map.terminal_type_code!=''">
+			and rtr.terminal_type_code=#{map.terminal_type_code}
+		</if> 
+		<if test="map.status_code!=null and map.status_code!=''">
+			and rtr.status_code=#{map.status_code}
+		</if> 
+		) b,
+	
+	 (select cc.cons_id,cc.org_no,cc.cons_no,cc.cons_name,
+            cc.cons_sort_code,cc.elec_addr,cc.cap_grade_no,cc.trade_code from sea_c_cons cc where 1=1
+           <if test="map.cons_no!=null and map.cons_no!=''">
+				and cc.cons_no in (${map.cons_no})
+			</if>
+			<if test="map.cons_sort_code!=null and map.cons_sort_code!=''">
+				and cc.cons_sort_code=#{map.cons_sort_code}
+			</if> 
+			<if test="map.trade_code!=null and map.trade_code!=''">
+				and cc.trade_code=#{map.trade_code}
+			</if>
+			<if test="map.cons_name!=null and map.cons_name!=''">
+				and instr(cc.cons_name,#{map.cons_name})>0
+			</if> 
+			<if test="map.elec_addr!=null and map.elec_addr!=''">
+				and instr(cc.elec_addr,#{map.elec_addr})>0
+			</if> 
+			<if test="map.cap_grade_no!=null and map.cap_grade_no!=''">
+				and cc.cap_grade_no=#{map.cap_grade_no}
+			</if>
+	      )c,
+	       (select x.*,y.usage_type_code,y.mp_name,y.type_code  from (select cm.asset_no,cm.meter_id,cm.mp_id,cm.cons_no,cm.comm_no from sea_c_meter cm
+	      		where 1=1
+      		<if test="map.asset_no!=null and map.asset_no!=''">
+				and cm.asset_no in (${map.asset_no})
+			</if> 
+			<if test="map.comm_no!=null and map.comm_no!=''">
+				and cm.comm_no=#{map.comm_no}
+			</if>
+			)x,( select cmp.mp_id,cmp.type_code,cmp.usage_type_code,cmp.mp_name from sea_c_mp cmp
+				where 1=1
+				<if test="map.type_code!=null and map.type_code!=''">
+					and cmp.type_code=#{map.type_code}
+				</if> 
+				<if test="map.usage_type_code!=null and map.usage_type_code!=''">
+					and cmp.usage_type_code=#{map.usage_type_code}
+				</if>
+			)y
+			where x.mp_id=y.mp_id
+	      )k,
+	       VW_SEA_ALARM_CODE d,
+	      vw_event_level e,
+	      vw_except_src f,
+	      sea_o_org g,
+	      vw_flow_flag_code h,
+	      vw_flow_status_code i,
+	      vw_cons_sort j 
+	      where a.terminal_id=b.terminal_id(+)
+	      and a.cons_no=c.cons_no(+)
+	      and a.except_code=d.event_no(+)
+	      and a.event_level=e.event_level(+)
+	      and a.except_src=f.EXCEPT_SRC_CODE(+)
+	      and a.org_no=g.org_no(+)
+	      and a.flow_flag=h.flow_flag_code(+)
+	      and a.flow_status_code=i.flow_status_code(+)
+	      and c.cons_sort_code=j.cons_sort
+	      and a.cons_no=k.cons_no(+)
+  		</otherwise>
+  	</choose>
+  </select>
+</mapper>

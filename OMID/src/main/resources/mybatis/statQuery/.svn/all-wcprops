@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/omid/!svn/ver/514/src/main/resources/mybatis/statQuery
+END
+MainPageMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/514/src/main/resources/mybatis/statQuery/MainPageMapper.xml
+END
+UsersExcMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/UsersExcMapper.xml
+END
+EquipEvaluateMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/EquipEvaluateMapper.xml
+END
+DisposeExcMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/DisposeExcMapper.xml
+END
+MeasureExcMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/MeasureExcMapper.xml
+END
+AlarmAnalyseMapper.xml
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/AlarmAnalyseMapper.xml
+END
+OnLineCheck.xml
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/omid/!svn/ver/507/src/main/resources/mybatis/statQuery/OnLineCheck.xml
+END

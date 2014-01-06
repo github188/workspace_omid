@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.onlineMoni.mapper.MeterRunStatusMonitorMapper">
+
+  <cache />
+  <select id="queryMeterProcolCodeList" parameterType="string" resultType="hashmap">
+  	   SELECT V.PROTOCOL_CODE MET_PROTOCOL_CODE,V.PROTOCOL_NAME MET_PROTOCOL_NAME FROM SEA_VW_MET_COMM_PROTOCOL V
+		UNION SELECT '00' MET_PROTOCOL_CODE,'----全部----' MET_PROTOCOL_NAME  FROM DUAL
+  </select >
+  <select id="queryMeterRunStatusTotalList" parameterType="string" resultType="hashmap">
+  	SELECT 0 AS FLAG ,VL.MET_CTRL_FLAG, VL.FLAG_VALUE,DECODE(VMCF.MET_CTRL_FLAG,12, DECODE(FLAG_VALUE, 0, '跳闸', 1, '合闸', '未知'),null,'合计',(VMCF.MET_CTRL_FLAG_NAME || DECODE(FLAG_VALUE, 0, '解除', 1, '投入'))) || '失败' EVENT_NAME,
+  	 CNT  FROM (
+  		SELECT IMC.MET_CTRL_FLAG,IMC.FLAG_VALUE,COUNT(*) CNT
+  			FROM SEA_I_MET_CTRL_STATUS IMC, SEA_C_METER C
+  			 <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+  			 	, SEA_R_TMNL_RUN R
+  			 </if>
+			WHERE IMC.METER_ID = C.METER_ID(+)
+			<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+  				AND C.TMNL_ASSET_NO=R.TMNL_ASSET_NO  	
+   				AND R.TERMINAL_ADDR  LIKE '%${map.terminalAddr}%'
+   			</if>
+  				AND C.ORG_NO IN
+		       	 	(SELECT ORG_NO
+		          	 FROM SEA_O_ORG
+		        	 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		         START WITH ORG_NO =#{map.orgNo} )
+		    <if test="map.meterAssetNo != null and map.meterAssetNo !='' "> 
+   				AND C.ASSET_NO =#{map.meterAssetNo}
+   			</if>
+   			<if test="map.consNo != null and map.consNo !='' ">
+  		 		AND C.CONS_NO LIKE '%${map.consNo}%'
+  		 	</if>
+  		 	<if test="map.protocolCode != null and map.protocolCode !='' and map.protocolCode !='00'">
+  				AND C.COMM_NO = #{map.protocolCode}
+  			</if>
+  			 <if test="map.areaCode !=null   and map.areaCode!='' " >
+	           	AND IMC.AREA_CODE=#{map.areaCode}
+	           	AND C.AREA_CODE=#{map.areaCode}
+          	 </if>
+   				AND IMC.STATUS_CODE='15'
+   				AND IMC.MET_CTRL_FLAG IN(10,11,12)
+   				GROUP BY IMC.MET_CTRL_FLAG,IMC.FLAG_VALUE   			 
+   			   ) VL,VW_MET_CTRL_FLAG VMCF
+         WHERE VL.MET_CTRL_FLAG=VMCF.MET_CTRL_FLAG(+)
+         UNION ALL 
+         <choose>
+       <when test="(map.terminalAddr != null and map.terminalAddr !='') or (map.meterAssetNo != null and map.meterAssetNo !='') or (map.consNo != null and  map.consNo !='') ">
+			         SELECT 1 AS FLAG, '-1' AS MET_CTRL_FLAG,-1 AS FLAG_VALUE,'连续抄表失败' AS  EVENT_NAME,COUNT(*)  CNT
+			       		FROM SEA_A_READ_FAIL_LIST_N AFLN, SEA_C_METER C
+			        <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+			             , SEA_R_TMNL_RUN R
+			        </if>
+					            WHERE     C.METER_ID(+)=AFLN.METER_ID
+			        <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+				      		 AND AFLN.TMNL_ASSET_NO=R.TMNL_ASSET_NO(+) 
+				      		 AND R.TERMINAL_ADDR   LIKE '%${map.terminalAddr}%'
+			        </if>
+				      		 AND  AFLN.ORG_NO IN
+						       	 	(SELECT ORG_NO
+						          	 FROM SEA_O_ORG
+						        	 CONNECT BY PRIOR ORG_NO = P_ORG_NO
+						         START WITH ORG_NO =#{map.orgNo} )
+					<if test="map.meterAssetNo != null and map.meterAssetNo !='' ">          
+			     			AND AFLN.ASSET_NO=#{map.meterAssetNo}
+					</if>
+					<if test="map.consNo != null and map.consNo !='' ">
+			       			AND AFLN.CONS_NO LIKE '%${map.consNo}%'
+			        </if>
+			        <if test="map.protocolCode != null and map.protocolCode !='' and map.protocolCode !='00'">
+			      			 AND C.COMM_NO=#{map.protocolCode}
+			        </if>   
+			        <if test="map.areaCode !=null   and map.areaCode!='' " >
+				       		  AND AFLN.AREA_CODE=#{map.areaCode}
+				        		 AND C.AREA_CODE=#{map.areaCode}
+			        </if>   
+						       AND AFLN.READ_FAIL_N>6
+						       AND AFLN.IS_INSTALL=1
+						       AND AFLN.STATUS_CODE='01'
+						       and AFLN.is_connect = 1
+      </when>
+      <otherwise>
+      	  SELECT 1 AS FLAG, '-1' AS MET_CTRL_FLAG,-1 AS FLAG_VALUE,'连续抄表失败' AS  EVENT_NAME,SUM(READ_FAIL_N) CNT
+      	   <if test="map.orgType=='02' or map.orgType=='03' or map.orgType=='04' ">
+      		 	FROM A_ORG_READFAIL_N A
+      	   </if>
+      	   <if test="map.orgType=='05' or map.orgType=='06' ">
+      			 FROM A_ORG_READFAIL_N_BR A
+      	   </if>
+				 WHERE 1=1
+		   <if test="map.orgType=='02'">
+			 	 AND A.ORG_TYPE='03'
+		   </if>
+		   <if test="map.orgType=='03' or map.orgType=='04' or map.orgType=='05' or map.orgType=='06'">
+			 	 AND  A.ORG_NO=#{map.orgNo}
+			 	 AND  A.ORG_TYPE=#{map.orgType}
+			</if>
+			 	AND A.STAT_DATE=TRUNC(SYSDATE-1)
+			 <if test="map.protocolCode != null and map.protocolCode !='' and map.protocolCode !='00'">
+			 	AND A.PROTOCOL_NO=#{map.protocolCode}
+			  </if>  
+      </otherwise>
+  	</choose>
+  </select>
+  <select id="queryMeterRunFailInfo" useCache="false" parameterType="string"  resultType="hashmap">
+  	<if test="map.flag ==0 or map.flag ==2 ">
+  	SELECT T.ORG_NO,
+       O.ORG_NAME,
+       T.CONS_NO,
+       C.CONS_NAME,
+       VT.CONS_TYPE_NAME,
+       T.APP_NO,
+       TO_CHAR(T.CIS_SEND_TIME,'YYYY-MM-DD HH24:MI:SS') CIS_SEND_TIME,
+       T.FAILURE_CODE,
+       DECODE(T.BACK_STATUS_CODE,'-1','初始化','0','失败','1','成功') BACK_STATUS_CODE,
+       DECODE(T.FEECTRL_TYPE_CODE,1,'电能表远程费控',1,'电能表本地费控') EVENT_NAME,
+       T.MET_CTRL_FLAG,
+       TO_CHAR(T.BACK_TIME,'YYYY-MM-DD HH24:MI:SS') BACK_TIME,
+       T.CIS_STAFF_NO,
+       VMCF.MET_CTRL_FLAG_NAME,
+       T.FLAG_VALUE,
+    DECODE(T.MET_CTRL_FLAG,12, DECODE(T.FLAG_VALUE,0,'跳闸',1,'合闸'),VMCF.MET_CTRL_FLAG_NAME|| DECODE(T.FLAG_VALUE,0,'解除',1,'投入'))||'失败' BUSINESS_TYPE,
+       TO_CHAR(T.SEND_TIME,'YYYY-MM-DD HH24:MI:SS') HAPPEN_TIME,
+       T.TERMINAL_ADDR,
+       T.ASSET_NO,
+       T.METER_ID,
+       S.STATUS_NAME,
+       T.TMNL_ASSET_NO,
+        0 AS FLAG 
+  FROM (SELECT  IMC.APP_NO,
+  				IMC.CIS_SEND_TIME,
+  				IMC.FAILURE_CODE,
+  				IMC.BACK_STATUS_CODE,
+       			IMC.BACK_TIME,
+                IMC.CIS_STAFF_NO,
+  			   IMC.FEECTRL_TYPE_CODE,
+               IMC.MET_CTRL_FLAG,
+               IMC.FLAG_VALUE,
+               C.ORG_NO,
+               IMC.SEND_TIME,
+               C.CONS_NO,
+               R.TERMINAL_ADDR,
+               C.ASSET_NO,
+               C.METER_ID,
+               C.TMNL_ASSET_NO,
+               IMC.STATUS_CODE
+          FROM SEA_I_MET_CTRL_STATUS IMC, SEA_C_METER C, SEA_R_TMNL_RUN R
+         WHERE IMC.METER_ID = C.METER_ID(+)
+           AND C.TMNL_ASSET_NO = R.TMNL_ASSET_NO(+)
+           <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+          AND R.TERMINAL_ADDR  LIKE  '%${map.terminalAddr}%'
+           </if>
+          
+           AND C.ORG_NO IN (SELECT ORG_NO
+                              FROM SEA_O_ORG
+                            CONNECT BY PRIOR ORG_NO = P_ORG_NO
+                             START WITH ORG_NO = #{map.orgNo})
+            <if test="map.meterAssetNo != null and map.meterAssetNo !='' "> 
+           AND C.ASSET_NO =#{map.meterAssetNo}
+           </if>
+           <if test="map.consNo != null and map.consNo !='' ">
+  		 		AND C.CONS_NO LIKE '%${map.consNo}%'
+  		 	</if>
+            <if test="map.protocolCode != null and map.protocolCode !='' and map.protocolCode !='00'">
+  				AND C.COMM_NO = #{map.protocolCode}
+  			</if>
+          		 AND IMC.STATUS_CODE = '15'
+            <if test="map.ctrlFlag != null and map.ctrlFlag !='' ">
+             	 AND IMC.MET_CTRL_FLAG =#{map.ctrlFlag}
+            </if>
+            <if test="map.flagValue != null and map.flagValue !='' ">
+                AND IMC.FLAG_VALUE =#{map.flagValue}
+             </if>
+             <if test="map.areaCode !=null   and map.areaCode!='' " >
+	         AND IMC.AREA_CODE=#{map.areaCode}
+	         AND C.AREA_CODE=#{map.areaCode}
+      		 </if> 
+         		AND IMC.MET_CTRL_FLAG IN (10, 11, 12)           
+           ) T,
+       SEA_O_ORG O,
+       SEA_C_CONS C,
+       SEA_VW_CONS_TYPE VT,
+       SEA.VW_SEND_STATUS_CODE S,
+       VW_MET_CTRL_FLAG VMCF
+ WHERE T.ORG_NO = O.ORG_NO
+   AND T.CONS_NO = C.CONS_NO
+   AND C.CONS_TYPE = VT.CONS_TYPE(+)
+   AND T.STATUS_CODE = S.STATUS_CODE(+)
+   AND T.MET_CTRL_FLAG=VMCF.MET_CTRL_FLAG(+)
+   <if test="map.areaCode !=null   and map.areaCode!='' " >
+	    AND C.AREA_CODE=#{map.areaCode}
+   </if> 
+</if>
+<if test=" map.flag ==2 ">
+	union all
+</if>
+ <if test="map.flag ==1 or map.flag ==2 ">
+ 	select t.ORG_NO,
+       o.org_name,
+       t.cons_no,
+       c.cons_name,
+       vc.cons_type_name,
+      vcs.STATUS_NAME APP_NO, 
+        TO_CHAR(t.last_succ_time,'YYYY-MM-DD HH24:MI:SS') CIS_SEND_TIME,    
+       '' FAILURE_CODE ,
+       '' BACK_STATUS_CODE, 
+       t.EVENT_NAME,
+       baudrate MET_CTRL_FLAG,
+       '' BACK_TIME,
+       vcm1.chip_manuf_name  CIS_STAFF_NO,
+       vcm2.chip_manuf_name  MET_CTRL_FLAG_NAME,
+       t.coll_port FLAG_VALUE, 
+       t.BUSINESS_TYPE,
+       t.HAPPEN_TIME,     
+       t.terminal_addr,
+       t.asset_no ,
+       t.meter_id,
+        t.STATUS_NAME,
+        T.TMNL_ASSET_NO,
+        1 AS FLAG 
+  from (SELECT AFLN.ORG_NO,
+               '连续' || AFLN.READ_FAIL_N || '天抄表失败'  EVENT_NAME,
+               '连续抄表失败'  BUSINESS_TYPE,
+               TO_CHAR(AFLN.MARK_TIME, 'YYYY-MM-DD HH24:MI:SS') HAPPEN_TIME,
+               afln.cons_no,
+               r.terminal_addr,
+               afln.asset_no,
+               AFLN.TMNL_ASSET_NO,
+               '抄表失败' STATUS_NAME,
+               c.meter_id,
+               c.baudrate,
+               c.coll_port,
+               afln.last_succ_time,               
+               c.carrier_wave_chip_manufacturer  c_chip_manufacturer,
+               r.carrier_wave_chip_manufacturer  r_chip_manufacturer        
+          FROM SEA_A_READ_FAIL_LIST_N AFLN, SEA_C_METER C, SEA_R_TMNL_RUN R        
+         WHERE  C.METER_ID(+) = AFLN.METER_ID
+           AND AFLN.TMNL_ASSET_NO = R.TMNL_ASSET_NO(+)
+           <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+                AND R.TERMINAL_ADDR   LIKE '%${map.terminalAddr}%'
+            </if>  
+           AND AFLN.ORG_NO IN (SELECT ORG_NO
+                                 FROM SEA_O_ORG
+                               CONNECT BY PRIOR ORG_NO = P_ORG_NO
+                                START WITH ORG_NO = #{map.orgNo})                               
+               <if test="map.meterAssetNo != null and map.meterAssetNo !='' "> 
+              AND AFLN.ASSET_NO=#{map.meterAssetNo}  
+               </if>  
+               <if test="map.consNo != null and map.consNo !='' ">
+                AND AFLN.CONS_NO LIKE '%${map.consNo}%'
+              </if> 
+            <if test="map.protocolCode != null and map.protocolCode !='' and map.protocolCode !='00'">
+  				AND C.COMM_NO = #{map.protocolCode}
+  			</if>
+  			<if test="map.areaCode !=null   and map.areaCode!='' " >
+  				AND AFLN.AREA_CODE=#{map.areaCode}
+	    		AND C.AREA_CODE=#{map.areaCode}
+   			</if> 
+           AND AFLN.READ_FAIL_N > 6
+           AND AFLN.IS_INSTALL = 1
+           AND AFLN.STATUS_CODE = '01'
+           and AFLN.is_connect = 1) t,
+       sea_o_org o,
+       sea_c_cons c,
+       sea_vw_cons_type vc,
+       sea.vw_cons_status_code vcs,
+       sea.vw_chip_manuf vcm1,
+       sea.vw_chip_manuf vcm2
+ where t.org_no = o.org_no
+   and t.cons_no = c.cons_no
+   and c.cons_type=vc.cons_type(+)
+    and c.status_code=vcs.STATUS_CODE(+)
+   and t.c_chip_manufacturer=vcm1.chip_manuf(+)
+   and t.r_chip_manufacturer=vcm2.chip_manuf(+)
+    <if test="map.areaCode !=null   and map.areaCode!='' " >  	
+	   AND C.AREA_CODE=#{map.areaCode}
+   	</if> 
+</if>
+  </select>
+  <select id="queryMeterCtrlSendRecord" parameterType="string"  resultType="hashmap">  
+		SELECT S.SEND_TIME, S.STATUS_CODE, S.STAFF_NO, S.IP_ADDR
+		FROM SEA_I_MET_CTRL_LOG S
+		WHERE S.APP_NO = #{map.appNo}
+     	 AND S.METER_ID = #{map.meterId}
+  </select>
+  
+  <select id="queryMeterFailSendRecord" parameterType="string"  resultType="hashmap">
+  	SELECT TP.PROT_ITEM_NO,
+       PI.PROT_ITEM_NAME,
+       TP.CURRENT_VALUE,
+       TP.HISTORY_VALUE,
+       TP.CALL_VALUE,
+       TP.STATUS_CODE,
+       VSSC.STATUS_NAME,
+       TP.SEND_TIME,
+       TP.STAFF_NO
+  FROM SEA_T_TMNL_PARAM TP, SEA_B_COMM_PROTOCOL_ITEM PI,SEA.VW_SEND_STATUS_CODE VSSC
+  
+ WHERE TP.PROT_ITEM_NO = PI.PROT_ITEM_NO
+   AND  TP.STATUS_CODE=VSSC.STATUS_CODE(+)
+   AND TP.TMNL_ASSET_NO = #{map.tmnl_asset_no}
+   AND TP.PROT_ITEM_NO LIKE '%0A%'
+   AND TP.BLOCK_SN =(   
+   SELECT MP_SN FROM(  
+     SELECT E.DATA_SRC, E.MP_SN
+         FROM SEA_E_DATA_MP E
+        WHERE TMNL_ASSET_NO =  #{map.tmnl_asset_no}
+          AND METER_ID =  #{map.meterId}
+       ORDER BY DATA_SRC)
+       WHERE ROWNUM=1)
+   ORDER BY TP.PROT_ITEM_NO 
+       
+  </select>
+  
+  
+</mapper>

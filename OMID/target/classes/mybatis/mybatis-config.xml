@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias alias="Account" type="com.nari.omid.domain.Account" />
+		<typeAlias alias="PSysUser" type="com.nari.omid.model.PSysUser"/>
+	</typeAliases>
+	
+	<plugins>
+		<plugin interceptor="com.nari.common.mybatis.pagination.ResultSetInterceptor" />
+		<plugin interceptor="com.nari.common.mybatis.pagination.PageInterceptor">
+			<property name="dialect" value="oracle" />
+		</plugin>
+	</plugins>
+	
+	<mappers>
+		<mapper resource="mybatis/AccountMapper.xml"/>
+		<mapper resource="mybatis/gis/gis_cp.xml"/>
+		<mapper resource="mybatis/statQuery/MeasureExcMapper.xml"/>
+		<mapper resource="mybatis/statQuery/DisposeExcMapper.xml"/>
+		<mapper resource="mybatis/MeasAnCountMapper.xml"/>
+		<mapper resource="mybatis/statQuery/OnLineCheck.xml"/>
+		<mapper resource="mybatis/intelDiag/ElecAbnormalMapper.xml"/>
+		<mapper resource="mybatis/statQuery/MainPageMapper.xml"/>
+		<mapper resource="mybatis/awaitAlarm/AwaitAlarmMapper.xml"/>
+		<mapper resource="mybatis/intelDiag/MeasureExceptionAnalMapper.xml"/>
+		<mapper resource="mybatis/intelDiag/TaskFlowMapper.xml"/>
+		<mapper resource="mybatis/templateManage/TemplateManageMapper.xml"/>
+		<mapper resource="mybatis/tmnlParamSet/TmnlParamSetMapper.xml"/>
+		<mapper resource="mybatis/systMan/MsgManageMapper.xml"/>
+		<mapper resource="mybatis/exceHand/AlarmFlowQueryMapper.xml"/>
+		<mapper resource="mybatis/statQuery/EquipEvaluateMapper.xml"/>
+		<mapper resource="mybatis/statQuery/AlarmAnalyseMapper.xml"/>
+		<mapper resource="mybatis/statQuery/UsersExcMapper.xml"/>
+		<mapper resource="mybatis/systMan/LoginMapper.xml"/>
+		<mapper resource="mybatis/systMan/definenotSendMapper.xml"/>
+        <mapper resource="mybatis/systMan/MsgManageMapper.xml"/>
+        <mapper resource="mybatis/onlineMoni/MeterRunStatusMonitorMapper.xml"/>
+		<mapper resource="mybatis/systMan/MsgSubscribeManageMapper.xml"/>
+		<mapper resource="mybatis/systMan/RoleManageMapper.xml"/>
+	</mappers>   
+	
+</configuration>

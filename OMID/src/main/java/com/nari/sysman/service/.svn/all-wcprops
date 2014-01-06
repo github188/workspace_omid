@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service
+END
+MsgManageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/MsgManageService.java
+END
+LoginService.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/LoginService.java
+END
+RoleManageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/RoleManageService.java
+END
+TmnlParamSetService.java
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/TmnlParamSetService.java
+END
+MsgSubscribeManageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/MsgSubscribeManageService.java
+END
+PMenuService.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/PMenuService.java
+END
+TemplateManageService.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/TemplateManageService.java
+END
+DefinenotSendService.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/omid/!svn/ver/507/src/main/java/com/nari/sysman/service/DefinenotSendService.java
+END

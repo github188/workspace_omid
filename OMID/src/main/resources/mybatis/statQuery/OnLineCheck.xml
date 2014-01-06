@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.nari.omid.mapper.OnLineCheck">
+	<cache />
+	<select id="querReadMeter" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	<choose>
+		<when test="orgType==02">
+		SELECT T.NUMS, OO.ORG_NO, OO.ORG_NAME, OO.ORG_SHORT_NAME
+		  FROM (SELECT COUNT(N.ID) NUMS, O.AREA_CODE
+		          FROM SEA_O_ORG O, SEA_A_READ_FAIL_LIST_N PARTITION(${org}) N
+		         WHERE O.ORG_NO = N.ORG_NO(+)
+		           AND N.STATUS_CODE = '01'
+		           AND N.READ_FAIL_N >= '7'
+		           AND N.MET_PROTOCOL_NO IN ('9901', '9902')
+		         GROUP BY O.AREA_CODE) T,
+		       SEA_O_ORG OO
+		 WHERE OO.AREA_CODE = T.AREA_CODE
+		   AND OO.ORG_TYPE = '03'
+		</when>
+		<when test="orgType ==03">
+			SELECT TT.*,
+			       (CASE
+			         WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+			          OO.ORG_SHORT_NAME || '市直'
+			         ELSE
+			          OO.ORG_SHORT_NAME
+			       END) ORG_NAME
+			  FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+			               DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+			               T.NUMS
+			          FROM (SELECT COUNT(1) NUMS,
+			                       C.AREA_NO AS ORG_NO,
+			                       O.P_ORG_NO,
+			                       O.ORG_TYPE
+			                  FROM SEA_A_READ_FAIL_LIST_N N,
+			                       SEA_C_CONS             C,
+			                       SEA_VW_ORG_REP         O
+			                 WHERE C.CONS_NO = N.CONS_NO
+			                   AND C.AREA_NO = O.ORG_NO
+			                   AND N.AREA_CODE = C.AREA_CODE
+			                   AND N.STATUS_CODE = '01'
+			                   AND N.READ_FAIL_N >= 7
+			                 GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+			       SEA_O_ORG OO
+			 WHERE OO.ORG_NO = TT.ORG_NO(+)
+			   AND (OO.ORG_NO =#{orgNo} OR OO.P_ORG_NO =#{orgNo})
+			 ORDER BY OO.ORG_NO, OO.ORG_TYPE
+		</when>
+		<when test="orgType==04">
+			SELECT TT.*,
+			       (CASE
+			         WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+			          OO.ORG_SHORT_NAME || '市直'
+			         ELSE
+			          OO.ORG_SHORT_NAME
+			       END) ORG_NAME
+			  FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+			               DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+			               T.NUMS
+			          FROM (SELECT COUNT(1) NUMS,
+			                       C.AREA_NO AS ORG_NO,
+			                       O.P_ORG_NO,
+			                       O.ORG_TYPE
+			                  FROM SEA_A_READ_FAIL_LIST_N N,
+			                       SEA_C_CONS             C,
+			                       SEA_VW_ORG_REP         O
+			                 WHERE C.CONS_NO = N.CONS_NO
+			                   AND C.AREA_NO = O.ORG_NO
+			                   AND N.AREA_CODE = C.AREA_CODE
+			                   AND N.STATUS_CODE = '01'
+			                   AND N.READ_FAIL_N >= 7
+			                 GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+			       SEA_O_ORG OO
+			 WHERE OO.ORG_NO = TT.ORG_NO
+			   AND OO.ORG_NO =#{orgNo}
+			   AND OO.ORG_TYPE =#{orgType}
+			 ORDER BY OO.ORG_NO, OO.ORG_TYPE
+		</when>
+		<otherwise>
+		SELECT COUNT(1) NUMS, O.ORG_NO, O.ORG_NAME, O.ORG_SHORT_NAME
+			  FROM SEA_A_READ_FAIL_LIST_N N, SEA_O_ORG O
+			 WHERE O.ORG_NO = N.ORG_NO
+			   AND O.ORG_TYPE = #{orgType}
+			   AND N.STATUS_CODE = '01'
+			   AND N.READ_FAIL_N >= '7'
+			   AND N.ORG_NO = #{orgNo}
+		GROUP BY O.ORG_NO, O.ORG_NAME, O.ORG_SHORT_NAME
+		</otherwise>
+	</choose>
+	</select>
+<select id="queryModeNum" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	SELECT COUNT(1) MODENUM, CM.COLL_MODE
+	  FROM SEA_A_TMNL_REAL_TIME T, VW_COLL_MODE CM
+	 WHERE CM.COLL_MODE_CODE = T.COMM_MODE
+	   AND T.IS_ONLINE = '0'
+	 GROUP BY CM.COLL_MODE
+	</select>
+<select id="queryFeelNum" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	<choose>
+		<when test="orgType==02">
+	SELECT DECODE(GOO.NUMS, NULL, 0, GOO.NUMS) FEELNUMS,
+       SO.ORG_NO,
+       SO.ORG_NAME,
+       SO.ORG_SHORT_NAME
+  FROM (SELECT TT.*,
+               (CASE
+                 WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+                  OO.ORG_SHORT_NAME || '市直'
+                 ELSE
+                  OO.ORG_SHORT_NAME
+               END) ORG_NAME
+          FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+                       DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+                       T.NUMS
+                  FROM (SELECT COUNT(1) NUMS,
+                               C.AREA_NO AS ORG_NO,
+                               O.P_ORG_NO,
+                               O.ORG_TYPE
+                          FROM SEA_W_FEECTRL N, SEA_C_CONS C, SEA_VW_ORG_REP O
+                         WHERE C.CONS_NO = N.CONS_NO
+                           AND C.AREA_NO = O.ORG_NO
+                           AND N.STATUS_CODE = '05'
+                         GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+               SEA_O_ORG OO
+         WHERE OO.ORG_NO = TT.ORG_NO(+)
+           AND TT.ORG_TYPE_CHAN IS NOT NULL
+           AND TT.ORG_TYPE_CHAN = '03'
+         ORDER BY OO.ORG_NO, OO.ORG_TYPE) GOO,
+       SEA_O_ORG SO
+ WHERE SO.ORG_NO = GOO.ORG_NO(+)
+   AND SO.ORG_TYPE = '03'
+ 		</when>
+ 		<when test="orgType=03">
+		SELECT TT.*,
+		       (CASE
+		         WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+		          OO.ORG_SHORT_NAME || '市直'
+		         ELSE
+		          OO.ORG_SHORT_NAME
+		       END) ORG_NAME
+		  FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+		               DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+		               T.FEELNUMS
+		          FROM (SELECT COUNT(1) FEELNUMS,
+		                       C.AREA_NO AS ORG_NO,
+		                       O.P_ORG_NO,
+		                       O.ORG_TYPE
+		                  FROM SEA_W_FEECTRL N, SEA_C_CONS C, SEA_VW_ORG_REP O
+		                 WHERE C.CONS_NO = N.CONS_NO
+		                   AND C.AREA_NO = O.ORG_NO
+		                   AND N.STATUS_CODE = '05'
+		                 GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+		       SEA_O_ORG OO
+		 WHERE OO.ORG_NO = TT.ORG_NO(+)
+		   AND TT.ORG_TYPE_CHAN IS NOT NULL
+		   AND (OO.P_ORG_NO =#{orgNo} OR OO.ORG_NO=#{orgNo})
+		 ORDER BY OO.ORG_NO, OO.ORG_TYPE
+ 		</when>
+ 		<when test ="orgType=04">
+ 		SELECT TT.*,
+		       (CASE
+		         WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+		          OO.ORG_SHORT_NAME || '市直'
+		         ELSE
+		          OO.ORG_SHORT_NAME
+		       END) ORG_NAME
+		  FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+		               DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+		               T.FEELNUMS
+		          FROM (SELECT COUNT(1) FEELNUMS,
+		                       C.AREA_NO AS ORG_NO,
+		                       O.P_ORG_NO,
+		                       O.ORG_TYPE
+		                  FROM SEA_W_FEECTRL N, SEA_C_CONS C, SEA_VW_ORG_REP O
+		                 WHERE C.CONS_NO = N.CONS_NO
+		                   AND C.AREA_NO = O.ORG_NO
+		                   AND N.STATUS_CODE = '05'
+		                 GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+		       SEA_O_ORG OO
+		 WHERE OO.ORG_NO = TT.ORG_NO(+)
+		   AND TT.ORG_TYPE_CHAN IS NOT NULL
+		   AND TT.ORG_TYPE_CHAN='04'
+		   AND OO.ORG_NO=#{orgNo}
+		 ORDER BY OO.ORG_NO, OO.ORG_TYPE	
+ 		</when>
+ 		<otherwise>
+		SELECT COUNT(1) AS FEELNUMS, O.ORG_NO, O.ORG_SHORT_NAME
+		  FROM SEA_W_FEECTRL N, SEA_O_ORG O
+		 WHERE O.ORG_NO = N.ORG_NO
+		   AND N.ORG_NO = #{orgNo}
+		   AND N.STATUS_CODE = '05'
+		 GROUP BY O.ORG_SHORT_NAME, O.ORG_NO
+ 		</otherwise>
+ 	</choose>
+</select>
+<select id="queryMetNum" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	<choose>
+	<when test ="orgType=02">
+		SELECT TT.*,
+               (CASE
+                 WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+                  OO.ORG_SHORT_NAME || '市直'
+                 ELSE
+                  OO.ORG_SHORT_NAME
+               END) ORG_NAME
+          FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+                       DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+                       T.NUMS
+                  FROM (SELECT COUNT(IC.APP_NO) NUMS,
+                               C.AREA_NO AS ORG_NO,
+                               O.P_ORG_NO,
+                               O.ORG_TYPE
+                          FROM SEA_I_MET_CTRL_STATUS IC,
+                               SEA_C_CONS            C,
+                               SEA_C_METER_MP_RELA   CM,
+                               SEA_C_MP              CMP,
+                               SEA_VW_ORG_REP        O
+                         WHERE CM.MP_ID = CMP.MP_ID
+                           AND CMP.CONS_NO = C.CONS_NO
+                           AND CM.METER_ID = IC.METER_ID
+                           AND C.AREA_NO = O.ORG_NO
+                           AND IC.STATUS_CODE='15'
+                         GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+               SEA_O_ORG OO
+         WHERE OO.ORG_NO = TT.ORG_NO(+)
+           AND TT.ORG_TYPE_CHAN IS NOT NULL
+           AND TT.ORG_TYPE_CHAN='03'
+         ORDER BY OO.ORG_NO, OO.ORG_TYPE
+	</when>
+	<when test="orgType=03">
+		SELECT TT.*,
+               (CASE
+                 WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+                  OO.ORG_SHORT_NAME || '市直'
+                 ELSE
+                  OO.ORG_SHORT_NAME
+               END) ORG_NAME
+          FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+                       DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+                       T.NUMS
+                  FROM (SELECT COUNT(IC.APP_NO) NUMS,
+                               C.AREA_NO AS ORG_NO,
+                               O.P_ORG_NO,
+                               O.ORG_TYPE
+                          FROM SEA_I_MET_CTRL_STATUS IC,
+                               SEA_C_CONS            C,
+                               SEA_C_METER_MP_RELA   CM,
+                               SEA_C_MP              CMP,
+                               SEA_VW_ORG_REP        O
+                         WHERE CM.MP_ID = CMP.MP_ID
+                           AND CMP.CONS_NO = C.CONS_NO
+                           AND CM.METER_ID = IC.METER_ID
+                           AND C.AREA_NO = O.ORG_NO
+                           AND IC.STATUS_CODE='15'
+                         GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+               SEA_O_ORG OO
+         WHERE OO.ORG_NO = TT.ORG_NO(+)
+           AND TT.ORG_TYPE_CHAN IS NOT NULL
+           AND (OO.P_ORG_NO=#{orgNo} OR OO.ORG_NO=#{orgNo})
+         ORDER BY OO.ORG_NO, OO.ORG_TYPE
+	</when>
+	<when test="orgType=04">
+		SELECT TT.*,
+               (CASE
+                 WHEN (OO.ORG_TYPE = '03' AND TT.ORG_TYPE_CHAN = '04') THEN
+                  OO.ORG_SHORT_NAME || '市直'
+                 ELSE
+                  OO.ORG_SHORT_NAME
+               END) ORG_NAME
+          FROM (SELECT NVL(T.ORG_NO, T.P_ORG_NO) AS ORG_NO,
+                       DECODE(T.ORG_NO, NULL, '03', T.ORG_TYPE) AS ORG_TYPE_CHAN,
+                       T.NUMS
+                  FROM (SELECT COUNT(IC.APP_NO) 	,
+                               C.AREA_NO AS ORG_NO,
+                               O.P_ORG_NO,
+                               O.ORG_TYPE
+                          FROM SEA_I_MET_CTRL_STATUS IC,
+                               SEA_C_CONS            C,
+                               SEA_C_METER_MP_RELA   CM,
+                               SEA_C_MP              CMP,
+                               SEA_VW_ORG_REP        O
+                         WHERE CM.MP_ID = CMP.MP_ID
+                           AND CMP.CONS_NO = C.CONS_NO
+                           AND CM.METER_ID = IC.METER_ID
+                           AND C.AREA_NO = O.ORG_NO
+                           AND IC.STATUS_CODE='15'
+                         GROUP BY CUBE(C.AREA_NO), O.P_ORG_NO, O.ORG_TYPE) T) TT,
+               SEA_O_ORG OO
+         WHERE OO.ORG_NO = TT.ORG_NO(+)
+           AND TT.ORG_TYPE_CHAN IS NOT NULL
+           AND OO.ORG_NO=#{orgNo}
+           AND TT.ORG_TYPE_CHAN =#{orgType}
+         ORDER BY OO.ORG_NO, OO.ORG_TYPE
+	</when>
+	<otherwise>
+		SELECT COUNT(IC.APP_NO) NUMS, O.ORG_SHORT_NAME AS ORG_NAME
+		  FROM SEA_I_MET_CTRL_STATUS IC,
+		       SEA_C_CONS            SC,
+		       SEA_C_METER_MP_RELA   CM,
+		       SEA_C_MP              CMP,
+		       SEA_O_ORG             O
+		 WHERE CM.MP_ID = CMP.MP_ID
+		   AND CMP.CONS_NO = SC.CONS_NO
+		   AND CM.METER_ID = IC.METER_ID
+		   AND SC.ORG_NO = O.ORG_NO
+		   AND O.ORG_NO = #{orgNo}
+		   AND IC.STATUS_CODE= '15'
+		 GROUP BY O.ORG_SHORT_NAME
+	</otherwise>
+	</choose>
+</select>
+<select id="queryTmnlRate" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	<choose>
+		<when test="orgType==02">
+	SELECT ROUND((T.ONLINE_TMNL_CNT / T.TMNL_CNT), 4) TMNL_RATE,
+       TO_CHAR(T.STAT_TIME, 'HH24:MI') STAT_TIME
+  FROM (SELECT SUM(A.ONLINE_TMNL_CNT) ONLINE_TMNL_CNT,
+               SUM(A.TMNL_CNT) TMNL_CNT,
+               A.STAT_TIME
+          FROM SEA_A_TMNL_ONLINE_RATE PARTITION(PART_${stateDate}) A
+         WHERE SUBSTR(A.STAT_TIME, 0, 10) =
+               TO_DATE(#{statDate}, 'YYYY-MM-DD')
+           AND A.COLL_MODE = #{collMode}
+         GROUP BY A.STAT_TIME
+         ORDER BY A.STAT_TIME) T
+		</when>
+	<otherwise>
+	SELECT ROUND((T.ONLINE_TMNL_CNT / T.TMNL_CNT), 4) TMNL_RATE,
+       TO_CHAR(T.STAT_TIME, 'HH24:MI') STAT_TIME
+  FROM (SELECT SUM(A.ONLINE_TMNL_CNT) ONLINE_TMNL_CNT,
+               SUM(A.TMNL_CNT) TMNL_CNT,
+               A.STAT_TIME
+          FROM SEA_A_TMNL_ONLINE_RATE PARTITION(PART_${stateDate}) A
+         WHERE SUBSTR(A.STAT_TIME, 0, 10) =
+               TO_DATE(#{statDate}, 'YYYY-MM-DD')
+           AND A.COLL_MODE = #{collMode}
+           AND A.ORG_NO = #{orgNo}
+         GROUP BY A.STAT_TIME
+         ORDER BY A.STAT_TIME) T
+	</otherwise>
+	</choose>
+ </select>
+<select id="queryCompareTmnlRate" useCache="false" parameterType="string" resultType="java.util.HashMap">
+	<choose>
+		<when test="orgType==02">
+	SELECT ROUND((T.ONLINE_TMNL_CNT / T.TMNL_CNT), 4) TMNL_RATE,
+       TO_CHAR(T.STAT_TIME, 'HH24:MI') STAT_TIME
+  FROM (SELECT SUM(A.ONLINE_TMNL_CNT) ONLINE_TMNL_CNT,
+               SUM(A.TMNL_CNT) TMNL_CNT,
+               A.STAT_TIME
+          FROM SEA_A_TMNL_ONLINE_RATE PARTITION(PART_${compareDate}) A
+         WHERE SUBSTR(A.STAT_TIME, 0, 10) =
+               TO_DATE(#{comDate}, 'YYYY-MM-DD')
+           AND A.COLL_MODE = #{collMode}
+         GROUP BY A.STAT_TIME
+         ORDER BY A.STAT_TIME) T
+		</when>
+	<otherwise>
+	SELECT ROUND((T.ONLINE_TMNL_CNT / T.TMNL_CNT), 4) TMNL_RATE,
+       TO_CHAR(T.STAT_TIME, 'HH24:MI') STAT_TIME
+  FROM (SELECT SUM(A.ONLINE_TMNL_CNT) ONLINE_TMNL_CNT,
+               SUM(A.TMNL_CNT) TMNL_CNT,
+               A.STAT_TIME
+          FROM SEA_A_TMNL_ONLINE_RATE PARTITION(PART_${compareDate}) A
+         WHERE SUBSTR(A.STAT_TIME, 0, 10) =
+               TO_DATE(#{comDate}, 'YYYY-MM-DD')
+           AND A.COLL_MODE = #{collMode}
+           AND A.ORG_NO = #{orgNo}
+         GROUP BY A.STAT_TIME
+         ORDER BY A.STAT_TIME) T
+	</otherwise>
+	</choose>
+</select>
+  <cache />
+</mapper>

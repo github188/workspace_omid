@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.intelDiag.mapper.TaskFlowMapper">
+
+  <cache />
+   <select id="queryTaskFlow" useCache="false"   resultType="hashmap">
+  SELECT A.TMNL_EXCEPTION_ID ALARM_ID,
+  	   A.TYPE_CODE ALARM_TYPE,
+  	   A.AREA_CODE,
+       A.EXCEPT_CODE,
+       A.TERMINAL_ID,
+       VW.EVENT_NAME,
+       A.ORG_NO,
+       O.ORG_NAME,
+       A.CONS_NO,
+       C.CONS_NAME,
+       C.CONS_TYPE,
+       TT.CONS_TYPE_NAME,
+       DECODE(A.EVENT_LEVEL,
+              '01',
+              '严重',
+              '02',
+              '重要',
+              '03',
+              '较重要',
+              '04',
+              '一般',
+              '') EVENT_LEVEL,
+       DECODE(A.EXCEPT_SRC,
+              '1',
+              '主站分析',
+              '2',
+              '终端上送事件',
+              '3',
+              '人工录入',
+              '') ALARM_SRC,
+       TO_CHAR(A.FIRST_HAPPEN_DATE, 'yyyy-mm-dd') FIRST_ALARM_DATE,
+       TO_CHAR(A.HAPPEN_DATE, 'yyyy-mm-dd') ALARM_DATE,
+       A.ALARM_CNT,
+       TO_CHAR(A.FIRST_RESUME_DATE, 'yyyy-mm-dd') FIRST_RESUME_DATE,
+       TO_CHAR(A.RESUME_DATE, 'yyyy-mm-dd') RESUME_DATE,
+       A.SAVE_EXCEPT_DATE,
+       A.RESUME_DAY_CNT,
+       R.TERMINAL_ADDR
+
+  FROM A_TMNL_EXCEPTION  A,
+       VW_SEA_ALARM_CODE VW,
+       SEA_C_CONS        C,
+       SEA_VW_CONS_TYPE  TT,
+       SEA_R_TMNL_RUN    R,
+       SEA_O_ORG         O
+ WHERE A.EXCEPT_CODE = VW.EVENT_NO
+   AND A.CONS_NO = C.CONS_NO(+)
+   AND C.CONS_TYPE = TT.CONS_TYPE(+)
+   AND A.TERMINAL_ID = R.TERMINAL_ID(+)
+   AND A.ORG_NO = O.ORG_NO(+) 
+   AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+		<if test="map.exceptCode != null and map.exceptCode !='' ">
+   			AND A.EXCEPT_CODE = #{map.exceptCode}
+   		</if>   
+		<if test="map.alarmCode != null and map.alarmCode !='' ">
+   			AND A.ALARM_CODE= #{map.alarmCode}
+   		</if>   
+        <if test="map.orgNo != null and map.orgNo !='' ">
+   			AND A.ORG_NO IN
+		        (SELECT ORG_NO
+		           FROM SEA_O_ORG
+		         CONNECT BY PRIOR ORG_NO = P_ORG_NO
+		          START WITH ORG_NO = #{map.orgNo})
+   		</if>
+   		<if test="map.eventLevel != null and map.eventLevel !='' ">
+   			AND A.EVENT_LEVEL = #{map.eventLevel}
+   		</if>
+   		<!--
+   		<if test="map.queryDate != null and map.queryDate !='' ">
+   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+   		</if>
+   		-->
+   		<if test="map.consNo != null and map.consNo !='' ">
+   			AND A.CONS_NO LIKE '%${map.consNo}%'
+   		</if>
+   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+   		</if>
+   		<if test="map.terminalType != null and map.terminalType !='' ">
+   			AND A.TYPE_CODE = #{map.terminalType}
+   		</if>
+  
+  </select >
+  <select id="queryTmnlNoFile" useCache="false"   resultType="hashmap">
+  		SELECT * FROM A_TMNL_EXCEPTION RRR WHERE RRR.EXCEPT_CODE = '00125' 
+  </select>
+  <select id="queryEleAbnormalTotalList" parameterType="string"  resultType="hashmap">
+select aa.except_code,
+       decode(aa.except_code, '', '合计', b.event_name) event_name,
+       aa.cnt
+  from (select except_code, count(1) cnt
+          from (SELECT a.except_code
+                  FROM a_tmnl_exception a
+                  <if test="map.terminalAddr != null and map.terminalAddr !='' ">
+          			,SEA_R_TMNL_RUN    R
+         		 </if>
+                 where a.org_no IN
+                       (SELECT ORG_NO
+                          FROM SEA_O_ORG
+                        CONNECT BY PRIOR ORG_NO = P_ORG_NO
+                        START WITH ORG_NO = #{map.orgNo})
+                   AND A.EVENT_LEVEL = #{map.eventLevel}
+		           AND A.FLOW_STATUS_CODE = #{map.flowStatusCode}
+		           <!--
+		        <if test="map.queryDate != null and map.queryDate !='' ">
+		   			AND A.BG_ANALY_TIME = TO_DATE(#{map.queryDate},'yyyy-mm-dd')
+		   		</if>
+		   		-->
+		        <if test="map.consNo != null and map.consNo !='' ">
+		   			AND A.CONS_NO LIKE '%${map.consNo}%'
+		   		</if>
+		   		<if test="map.terminalAddr != null and map.terminalAddr !='' ">
+		   			AND R.TERMINAL_ADDR LIKE '%${map.terminalAddr}%'
+		   		</if>
+		   		<if test="map.terminalType != null and map.terminalType !='' ">
+		   			AND A.TYPE_CODE = #{map.terminalType}
+		   		</if>
+                union all
+                SELECT b.except_code
+                  FROM a_tmnl_exception b
+                 where b.except_code = '00125'
+                ) warp
+         group by cube(warp.except_code)
+        ) aa,
+       vw_sea_alarm_code b
+ where aa.except_code = b.event_no(+)
+ order by except_code
+  </select>
+	<select id="queryAbnormal" useCache="false" resultType="hashmap">
+		select a.* ,
+	       b.tmnl_task_type_name,
+	       c.debug_status_name,
+	       d.flow_flag_name
+	  	from SEA_i_tmnl_task a,
+	       sea_vw_tmnl_task_type b,
+	       sea_vw_debug_status_code c,
+	       sea_vw_flow_flag d
+		where  a.tmnl_task_type = b.tmnl_task_type
+	  		and  a.debug_status_code = c.debug_status_code
+	  		and  a.flow_flag = d.flow_flag
+			and  a.terminal_id = #{map.terminal_id}
+			order by a.debug_time desc
+   </select >
+   
+   <select id="queryTmnlCheckClock" useCache="false" resultType="hashmap">
+		select check_obj_time,
+      		   server_time
+		from   SEA_T_TMNL_CHECK_CLOCK
+		where  terminal_addr = #{map.terminal_addr}
+	   	
+   </select>
+   <select id="queryTmnlParam" useCache="false" resultType="hashmap">
+		select tp.current_value,
+           	   tp.history_value,
+           	   tp.inner_block_sn,
+          	   tp.call_value,
+	           tp.send_time,
+	           tp.staff_no,
+		       pi.prot_item_name
+		from   SEA_t_tmnl_param tp,
+		       SEA_B_COMM_PROTOCOL_ITEM pi,
+		       sea_r_tmnl_run a
+		where  tp.prot_item_no = pi.prot_item_no
+	    and    pi.prot_item_no like '%5040A%'	
+		and    tp.tmnl_asset_no = a.tmnl_asset_no
+		and    a.terminal_id = #{map.terminal_id}
+   </select>
+   <select id="queryTmnlMsgLog" useCache="false" resultType="hashmap">
+	<!--
+		select a.*,
+		       b.*
+		from   SEA_E_TMNL_EVENT a,
+		       sea_e_data_mp c,
+		       SEA_L_UP_COMM_MSG_LOG
+		  <if test="map.datePartition != null and map.datePartition !='' ">
+              ${map.datePartition}
+          </if>  
+		       b
+		where  a.id = c.id
+		and    b.terminal_addr = c.terminal_addr
+		and    c.terminal_addr = #{map.terminal_addr}
+		-->
+		
+		select * from SEA_L_UP_COMM_MSG_LOG 
+		  <if test="map.datePartition != null and map.datePartition !='' ">
+              ${map.datePartition}
+          </if> b
+		where b.terminal_addr = #{map.terminal_addr}
+		and	  TRUNC(b.COMM_TIME) = TO_DATE(#{map.alarmTime},'yyyy-mm-dd')
+   </select>
+   <select id="queryTmnlEvent" useCache="false" resultType="hashmap">
+		select  b.event_time,
+            	b.receive_time,
+            	b.from_type, 
+			    c.terminal_addr,
+			    t.event_name 
+			from SEA_E_TMNL_EVENT
+		 <if test="map.eventPartition != null and map.eventPartition !='' ">
+              ${map.eventPartition}
+          </if> b,
+         	 sea_e_data_mp c,
+         	 b_protocol_event t
+			where b.id = c.ID(+)
+			and b.event_no = t.event_no(+)
+			and c.terminal_addr = #{map.terminal_addr}
+   </select>
+   <select id="queryMpCurve" useCache="false" resultType="hashmap">
+	select a.tmnl_ip,
+	       a.sim_no,
+	       a.current_load,
+	       a.load_time,
+	       a.event_time,
+	       DECODE (a.is_online,
+	       '0',
+	       '离线',
+	       '1',
+	       '在线',
+	       '')is_online,
+	       --a.is_online,
+	       a.onoff_time,
+	       t.event_name 
+	from sea_a_tmnl_real_time a,
+	     	b_protocol_event t 
+	where   a.event_no = t.event_no(+) 
+	AND 	a.tmnl_asset_no = #{map.terminal_id}
+	   </select>
+   <select id="queryTmnlCopyFailure" useCache="false" resultType="hashmap">
+		<!--select a.asset_no,
+		       b.data_date,
+		       b.ct,
+		       b.pt,
+		       f.cons_name,
+		       h.PROTOCOL_name,
+		       DECODE(c.is_online,
+		              '0',
+		              '不在线',
+		              '1',
+		              '在线',
+		              '') is_online
+		from   SEA_C_METER a,
+		       SEA_E_MP_DAY_READ b,
+		       A_TMNL_REAL_TIME  c,
+		       sea_e_data_mp     d,
+		       sea_r_tmnl_run    e,
+		       SEA_C_CONS        f,
+		       VW_PROTOCOL_CODE  h
+		where  a.meter_id = d.meter_id
+		and    b.id = d.id
+		and    c.terminal_id = e.terminal_id
+		and    d.tmnl_asset_no = e.tmnl_asset_no
+		and    a.cons_no = f.cons_no
+		and    e.protocol_code = h.PROTOCOL_CODE
+		and    e.terminal_id = #{map.terminal_id}-->
+		select aa.asset_no,
+		       c.protocol_name,
+		       DECODE(aa.coll_port,'31','载波','2','485','') coll_port,
+		       aa.read_fail_n,
+		       aa.mark_time,
+		       aa.cons_sort,
+		       d.cons_sort_name,
+		       b.cons_name 
+		from sea_a_read_fail_list_n aa,
+		     SEA_C_CONS b,
+		     SEA_VW_MET_COMM_PROTOCOL c,
+		     Vw_Cons_Sort d  
+		where aa.asset_no in 
+			(select distinct asset_no from  
+			sea_e_data_mp 
+			where terminal_addr = #{map.terminal_addr})
+		and aa.cons_no = b.cons_no
+		and aa.met_protocol_no = c.protocol_code
+		and aa.cons_sort = d.cons_sort
+   </select>
+   <select id="queryTmnlStop" useCache="false" resultType="hashmap">
+	<!--
+		select a.data_time,
+			   a.p
+		from   sea_e_mp_curve a,
+		       sea_e_data_mp b
+		where  a.id = b.id
+		and    b.terminal_addr = #{map.terminal_addr}
+		-->
+   	select a.data_time,
+           a.p
+    from   sea_e_mp_curve 
+    <if test="map.datePartition != null and map.datePartition !='' ">
+              ${map.datePartition}
+    </if>
+    		a
+    where  a.ID in (SELECT E.ID
+                     FROM SEA_E_DATA_MP E
+		                WHERE E.terminal_addr = #{map.terminal_addr}
+		                  AND E.DATA_SRC = '1'
+		                  AND E.IS_VALID = '1'
+		                  AND ROWNUM = 1)
+		
+   </select>
+
+   <select id="queryTmnlChangData" useCache="false" resultType="hashmap">
+		select * from A_TMNL_DATA_RELA
+		where  terminal_id = #{map.terminal_id}
+   </select>
+
+   <select id="queryP" useCache="false" resultType="hashmap">
+		select * from sea_e_mp_curve
+		where	id = #{map.DATA_ID}
+		and		data_time = TO_DATE(#{map.DATA_TIME},'yyyy-mm-dd')
+   </select>
+
+   <select id="queryDayRead" useCache="false" resultType="hashmap">
+		select * from sea_E_MP_DAY_READ
+		where	id = #{map.DATA_ID}
+		and		data_date = TO_DATE(#{map.DATA_TIME},'yyyy-mm-dd')
+   </select>
+
+   <select id="queryEnergy" useCache="false" resultType="hashmap">
+		select * from sea_e_mp_day_energy
+		where	id = #{map.DATA_ID}
+		and		data_date = TO_DATE(#{map.DATA_TIME},'yyyy-mm-dd')
+   </select>
+
+   <select id="queryTmnlType" useCache="false" resultType="hashmap">
+      SELECT '' AS TMNL_TYPE_CODE,'--全部--' AS TMNL_TYPE FROM  DUAL
+  	  UNION select * from sea_vw_tmnl_type_code 
+  	  ORDER BY TMNL_TYPE_CODE DESC 
+   </select>
+    <select id="queryAlarmAnalyseHisInfo" useCache="false" parameterType="string" resultType="hashmap">
+         SELECT A.TMNL_EXCEPTION_ID,
+                A.CONS_NO,
+                A.EXCEPT_CODE,
+                VW.event_name,
+                C.event_level_name,
+                TO_CHAR(A.HAPPEN_DATE,'yyyy-mm-dd') HAPPEN_DATE,
+                TO_CHAR(A.FIRST_HAPPEN_DATE,'yyyy-mm-dd') FIRST_HAPPEN_DATE,
+                A.ALARM_CNT,
+                D.EXCEPT_SRC_NAME,
+                TO_CHAR(A.FIRST_RESUME_DATE,'yyyy-mm-dd') FIRST_RESUME_DATE,
+                TO_CHAR(A.RESUME_DATE,'yyyy-mm-dd') RESUME_DATE,
+                A.RESUME_DAY_CNT
+                
+         FROM  A_TMNL_EXCEPTION A,
+               VW_SEA_ALARM_CODE VW,
+               VW_EVENT_LEVEL C,
+               VW_EXCEPT_SRC  D
+         WHERE A.EXCEPT_CODE = VW.event_no
+         AND   A.EVENT_LEVEL = C.event_level
+         AND   A.EXCEPT_SRC = D.EXCEPT_SRC_CODE
+		 AND A.EXCEPT_CODE= #{map.exceptCode}
+   		 AND A.CONS_NO LIKE '%${ map.consNo}%' 
+   		 AND A.TYPE_CODE =#{map.alarmType}
+   		 <![CDATA[ AND A.HAPPEN_DATE >=to_date(#{map.querySdate},'yyyy-mm-dd')
+ 		  	AND A.HAPPEN_DATE <= to_date(#{map.queryEdate},'yyyy-mm-dd')]]>
+  
+   </select >
+   <select id="queryFileTotalList" resultType="hashmap">
+	SELECT A.CONS_NO,
+       A.CONS_NAME,
+       A.VOLT_CODE VOLT,
+       A.ELEC_ADDR,
+       A.RUN_CAP,
+       A.CONTRACT_CAP,
+       A.CONS_SORT_NAME,
+       A.TRADE_NAME,
+       A.ELEC_TYPE,
+       A1.TMNL_ASSET_NO,
+       A1.TERMINAL_ADDR,
+       A1.STATUS_NAME,
+       A1.PROTOCOL_NAME,
+       A1.TMNL_TYPE,
+       A1.COLL_MODE_NAME,
+       A1.FACTORY_NAME,
+       A1.CP_NO,
+       A1.CP_ADDR,
+       A1.CP_TYPE
+  FROM (SELECT C.CONS_NO,
+               C.CONS_NAME,
+               C.VOLT_CODE,
+               VVC.VOLT,
+               C.ELEC_ADDR,
+               C.RUN_CAP,
+               C.CONTRACT_CAP,
+               VS.CONS_SORT_NAME,
+               C.TRADE_CODE,
+               T.TRADE_NAME,
+               C.ELEC_TYPE_CODE,
+               ET.ELEC_TYPE
+          FROM SEA_C_CONS            C,
+               SEA_VW_TRADE          T,
+               SEA_VW_ELEC_TYPE_CODE ET,
+               SEA_VW_VOLT_CODE      VVC,
+               SEA_VW_CONS_SORT_CODE VS
+         WHERE C.TRADE_CODE = T.TRADE_NO(+)
+           AND VVC.VOLT_CODE (+)= C.VOLT_CODE
+           AND C.ELEC_TYPE_CODE = ET.ELEC_TYPE_CODE(+)
+           AND C.CONS_SORT_CODE = VS.CONS_SORT_CODE
+           AND C.CONS_NO = #{map.consNo}) A,
+       (SELECT R.TMNL_ASSET_NO,
+               R.TERMINAL_ADDR,
+               R.STATUS_CODE,
+               S.STATUS_NAME,
+               R.PROTOCOL_CODE,
+               P.PROTOCOL_NAME,
+               R.TERMINAL_TYPE_CODE,
+               T.TMNL_TYPE,
+               R.COLL_MODE,
+               C.COLL_MODE COLL_MODE_NAME,
+               R.FACTORY_CODE,
+               F.FACTORY_NAME,
+               RCP.CP_NO,
+               RCP.CP_ADDR,
+               RCPT.CP_TYPE
+          FROM SEA_R_TMNL_RUN         R,
+          	   SEA_R_CP               RCP,
+          	   SEA.VW_CP_TYPE_CODE    RCPT,
+               SEA_VW_TMNL_STATUS_RUN S,
+               VW_PROTOCOL_CODE       P,
+               SEA_VW_TMNL_TYPE_CODE  T,
+               VW_COLL_MODE           C,
+               SEA_VW_TMNL_FACTORY    F
+         WHERE R.STATUS_CODE = S.STATUS_CODE(+)
+           AND R.CP_NO = RCP.CP_NO(+)
+           AND RCP.CP_TYPE_CODE=RCPT.CP_TYPE_CODE(+)
+           AND R.PROTOCOL_CODE = P.PROTOCOL_CODE(+)
+           AND R.TERMINAL_TYPE_CODE = T.TMNL_TYPE_CODE(+)
+           AND R.COLL_MODE = C.COLL_MODE_CODE(+)
+           AND R.FACTORY_CODE = F.FACTORY_CODE(+)
+           AND R.TERMINAL_ADDR = #{map.termimalAddr}) A1
+  </select>
+</mapper>

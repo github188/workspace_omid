@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper
+END
+EquipEvaluateMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper/EquipEvaluateMapper.java
+END
+UsersExcMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper/UsersExcMapper.java
+END
+MeasureExcMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper/MeasureExcMapper.java
+END
+AlarmAnalyseMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper/AlarmAnalyseMapper.java
+END
+DisposeExcMapper.java
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/omid/!svn/ver/507/src/main/java/com/nari/statQuery/mapper/DisposeExcMapper.java
+END

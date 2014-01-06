@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test
+END
+UserServiceTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test/UserServiceTest.java
+END
+EleAbnormalAnalyServiceTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test/EleAbnormalAnalyServiceTest.java
+END
+AccountDaoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test/AccountDaoTest.java
+END
+RunJetty.java
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test/RunJetty.java
+END
+GisDaoTest.java
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/omid/!svn/ver/507/src/main/java/com/nari/test/GisDaoTest.java
+END

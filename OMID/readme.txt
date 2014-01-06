@@ -1,0 +1,9 @@
+打包注意事项：
+1、文件resources.properties中
+22行ava.naming.provider.url=t3://localhost:7001端口号和发包weblogic一致（看各处发包情况而定）
+2、文件spring-config.xml
+打包时注释48--58行，放开27--45行，运行时相反
+3、文件pom.xml
+运行时注释259--273行
+4、文件log4j.properties
+运行时放开16行，注释17行，打包时相反

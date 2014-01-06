@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nari.sysman.mapper.MsgManageMapper">
+	  <cache />
+  <select id= "queryOOrgByOrgNo"  parameterType="hashmap"  resultType="hashmap">
+	  	SELECT O.ORG_NAME,O.ORG_TYPE,O.ORG_SHORT_NAME
+	  	 FROM SEA_O_ORG O WHERE O.ORG_NO =#{map.orgNo}
+  </select >
+  <select id= "querySubsType"  parameterType="string"  resultType="hashmap">
+	  	SELECT VW.SUBS_TYPE_CODE, VW.SUBS_TYPE_CODE_NAME FROM VW_SUBS_TYPE VW
+  </select >
+  <select id= "queryEventSrc"  parameterType="string"  resultType="hashmap">
+	  	SELECT VW.EVENT_SRC_CODE, VW.EVENT_SRC_NAME FROM SEA.VW_EVENT_SRC VW
+  </select > 
+  <select id= "queryExceptEvent"  parameterType="string"  resultType="hashmap">
+	  	SELECT VW.EVENT_NO AS EVENT_CODE, VW.EVENT_NAME FROM VW_SEA_ALARM_CODE VW
+  </select >
+  <select id= "queryAllMsgTemplate"  parameterType="string"  resultType="hashmap">
+	  	SELECT S.SEND_TYPE_CODE, S.TEMPLATE_NAME, S.TEMPLATE_CONTENT
+			  FROM sea.W_SMS_SEND_TEMPLATE S
+			 ORDER BY S.SEND_TYPE_CODE
+  </select >  
+  <select id= "queryStatContact" useCache="false"  parameterType="hashmap"  resultType="hashmap">
+   		    SELECT W.ORG_NO,
+			       O.ORG_NAME, 
+			       W.STAFF_NO, 
+			       W.NAME U_NAME, 
+			       W.MOBILE_NO, 
+			       D.NAME D_NAME
+			  FROM sea.P_SYS_USER W, SEA_O_ORG O, sea.O_DEPT D
+			 WHERE W.ORG_NO = O.ORG_NO(+) 
+			   AND W.DEPT_NO = D.DEPT_NO(+) 
+		<if test="map.orgName != null and map.orgName !='' ">
+				AND O.ORG_NAME LIKE '%${map.orgName}%'
+		</if>	   
+		<if test="map.personnelName != null and map.personnelName !='' ">
+		    	AND W.NAME LIKE '%${map.personnelName}%'  
+		</if>	
+		<if test="map.mobileNo != null and map.mobileNo !='' ">
+		    	AND W.MOBILE_NO LIKE '%${map.mobileNo}%'  
+		</if>	
+  </select > 
+  <select id= "querySelfDeContact" useCache="false"  parameterType="hashmap"  resultType="hashmap">
+  		SELECT * FROM W_SMS_CALLING_CARD W WHERE 1 = 1 
+  		<if test="map.staffNo != null and map.staffNo !='' ">
+				AND W.STAFF_NO = #{map.staffNo}
+		</if>	
+		<if test="map.orgName != null and map.orgName !='' ">
+				AND W.ORG_NAME LIKE '%${map.orgName}%'
+		</if>	   
+		<if test="map.personnelName != null and map.personnelName !='' ">
+		    	AND W.PERSONNEL_NAME LIKE '%${map.personnelName}%'  
+		</if>	
+		<if test="map.mobileNo != null and map.mobileNo !='' ">
+		    	AND W.MOBILE_NO LIKE '%${map.mobileNo}%'  
+		</if>
+  </select > 
+  <select id= "queryConsContact"  useCache="false"  parameterType="hashmap"  resultType="hashmap">
+  			SELECT CONS.ORG_NO,
+			       O.ORG_NAME, 
+			       CONS.CONS_NO, 
+			       CONS.CONS_NAME, 
+			       CONS.ELEC_ADDR, 
+			       LINE.LINE_NAME, 
+			       TG.TG_NAME, 
+			       CONS.MR_SECT_NO, 
+			       CONS.RUN_CAP 
+			  FROM SEA_C_CONS      CONS, 
+			       SEA_O_ORG       O, 
+			       SEA_G_LINE      LINE, 
+			       SEA_G_TG        TG
+			 WHERE CONS.ORG_NO = O.ORG_NO(+) 
+			   AND CONS.LINE_ID = LINE.LINE_ID(+) 
+			   AND CONS.TG_ID = TG.TG_ID(+)
+		<if test="map.tgName != null and map.tgName !='' ">	
+			   AND TG.TG_NAME LIKE '%${map.tgName}%'
+		</if>
+		<if test="map.mrSectNo != null and map.mrSectNo !='' ">	
+			   AND CONS.MR_SECT_NO LIKE '%${map.mrSectNo}%'
+		</if> 
+		<if test="map.consNo != null and map.consNo !='' ">	
+			   AND CONS.CONS_NO LIKE '%${map.consNo}%'
+		</if>
+		<if test="map.consName != null and map.consName !='' ">	   
+			   AND CONS.CONS_NAME  LIKE  '%${map.consName}%'
+		</if>
+		ORDER BY CONS.CONS_NO
+   </select > 	
+   <select id= "getRecordId"  parameterType="string"  resultType="String">
+   		SELECT S_W_SMS_SUBSCRIBE.NEXTVAL RECORD_ID FROM DUAL
+   </select >
+   <insert id= "saveSmsSubScribe"  parameterType="hashmap" >
+   		INSERT INTO W_SMS_SUBSCRIBE
+			  (SUBSCRIBE_ID, 
+			   ORG_NO, 
+			   SUBSCRIBE_NAME, 
+			   SUBS_TYPE_CODE, 
+			   SEND_USER_LIMIT, 
+			   START_DATE, 
+			   END_DATE, 
+			   SEND_TIME_S, 
+			   SEND_TIME_E, 
+			   STAFF_NO, 
+			   CREATE_DATE, 
+			   IS_VALID) 
+			VALUES 
+			  (#{map.recordId}, 
+			   #{map.orgNo}, 
+			   #{map.subscribeName}, 
+			   #{map.subsTypeCode}, 
+			   #{map.sendUserLimit}, 
+			   TO_DATE(#{map.startDate},'yyyy-mm-dd'), 
+			   TO_DATE(#{map.endDate},'yyyy-mm-dd'), 
+			   #{map.sendTimeS}, 
+			   #{map.sendTimeE}, 
+			   #{map.staffNo}, 
+			   SYSDATE, 
+			   '1')
+   </insert > 	
+   <select id= "getSubscribeId"  parameterType="string"  resultType="String">
+   		SELECT S_W_SMS_SUBSCRIBE_OBJ.NEXTVAL  SUBSCRIBE_ID FROM DUAL
+   </select >
+   <insert id= "saveSmsSubScribeObj"  parameterType="hashmap" >
+   		INSERT INTO W_SMS_SUBSCRIBE_OBJ
+			  (RECORD_ID, 
+			   SUBSCRIBE_ID, 
+			   EVENT_NO, 
+			   EVENT_SRC, 
+			   STAFF_NO_ID, 
+			   STAFF_TEMPLATE_ID, 
+			   CONS_NO_ID, 
+			   CONS_TEMPLATE_ID, 
+			   DEFINE_USER_ID, 
+			   DEF_TEMPLATE_ID) 
+			VALUES 
+			  (
+			   #{map.subScribeId},
+			   #{map.recordId},  
+			   #{map.EVENT_NO}, 
+			   #{map.eventSrc}, 
+			   #{map.STAFF_NO_ID}, 
+			   #{map.STAFF_TEMPLATE_ID}, 
+			   #{map.CONS_NO_ID}, 
+			   #{map.CONS_TEMPLATE_ID}, 
+			   #{map.DEFINE_USER_ID}, 
+			   #{map.DEF_TEMPLATE_ID})
+   </insert > 
+   <insert id= "saveSmsSendObj"  parameterType="hashmap" >
+   	INSERT INTO W_SMS_SEND_OBJ
+			  (RECORD_ID, SUBSCRIBE_ID, EVENT_NO, OBJ_TYPE, SUBS_OBJ_ID) 
+			VALUES 
+			  (S_W_SMS_SEND_OBJ.NEXTVAL,#{map.subScribeId},#{map.eventNo}, '1', #{map.consNo}) 
+   	</insert > 
+</mapper>	  
+	  
